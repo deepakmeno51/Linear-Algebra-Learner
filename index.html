@@ -1,0 +1,2685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linear Algebra for Deep Learning — Complete Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script>
+// Async MathJax config
+window.MathJax = {
+  tex: { inlineMath: [['\\(','\\)'], ['$','$']], displayMath: [['\\[','\\]'], ['$$','$$']], tags:'ams' },
+  options: { skipHtmlTags: ['script','noscript','style','textarea'] },
+  startup: { ready() { MathJax.startup.defaultReady(); } }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" id="MathJax-script" async></script>
+<style>
+/* ─── RESET & TOKENS ─── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:        #f8f5ef;
+  --surface:   #ffffff;
+  --surface2:  #f0ece3;
+  --ink:       #1a1814;
+  --ink2:      #3d3830;
+  --muted:     #7a7060;
+  --border:    #d8d0c0;
+  --border2:   #ece6d8;
+
+  --red:    #c0392b;
+  --red-bg: #fdf3f2;
+  --red-br: #f0c0bb;
+
+  --blue:    #1a4f8a;
+  --blue-bg: #f0f4fb;
+  --blue-br: #b8cef0;
+
+  --green:    #1a7040;
+  --green-bg: #f0f8f3;
+  --green-br: #b0dfc0;
+
+  --amber:    #b06010;
+  --amber-bg: #fdf5ec;
+  --amber-br: #e8c898;
+
+  --violet:    #6a1a7a;
+  --violet-bg: #f8f0fc;
+  --violet-br: #d8b8e8;
+
+  --gold: #c89020;
+
+  --code-bg: #1c1b22;
+  --code-fg: #e2e0d8;
+  --code-key: #7ec8e3;
+  --code-num: #f0b060;
+  --code-com: #778890;
+  --code-str: #98d898;
+
+  --sidebar-w: 280px;
+  --content-max: 820px;
+  --serif: 'Libre Baskerville', Georgia, serif;
+  --sans: 'Inter', system-ui, sans-serif;
+  --mono: 'IBM Plex Mono', 'Courier New', monospace;
+}
+
+/* ─── BASE ─── */
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 16px;
+  line-height: 1.8;
+  min-height: 100vh;
+}
+p { margin-bottom: 1em; }
+h1,h2,h3,h4,h5 { line-height: 1.25; margin-top: 1.6em; margin-bottom: .5em; }
+h2 { font-size: 1.9rem; }
+h3 { font-size: 1.35rem; border-bottom: 1px solid var(--border2); padding-bottom: .3em; margin-top: 2em; }
+h4 { font-size: 1.1rem; color: var(--ink2); }
+h5 { font-size: .95rem; font-family: var(--sans); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+ul,ol { padding-left: 1.4em; margin-bottom: 1em; }
+li { margin-bottom: .4em; font-size: .95rem; }
+strong { color: var(--ink); }
+a { color: var(--blue); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ─── LAYOUT ─── */
+#sidebar {
+  position: fixed; left:0; top:0; bottom:0; width: var(--sidebar-w);
+  background: var(--ink); color: #c8c0b0;
+  overflow-y: auto; z-index: 200;
+  display: flex; flex-direction: column;
+  transition: transform .3s cubic-bezier(.4,0,.2,1);
+}
+#main { margin-left: var(--sidebar-w); }
+
+/* ─── SIDEBAR INTERNALS ─── */
+.sb-brand {
+  padding: 28px 22px 20px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  flex-shrink: 0;
+}
+.sb-brand-title {
+  font-family: var(--serif); font-size: 1.05rem; font-weight: 700;
+  color: #f0e8d8; line-height: 1.3; margin-bottom: 6px;
+}
+.sb-brand-sub {
+  font-family: var(--mono); font-size: .65rem; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--gold); opacity: .75;
+}
+.sb-section-label {
+  padding: 18px 22px 6px;
+  font-family: var(--mono); font-size: .62rem; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--gold); opacity: .6;
+}
+.sb-item {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 9px 22px; cursor: pointer; font-size: .82rem;
+  color: rgba(200,192,176,.7); border-left: 3px solid transparent;
+  transition: all .15s; line-height: 1.35; font-family: var(--sans);
+}
+.sb-item:hover { color: #f0e8d8; background: rgba(255,255,255,.04); }
+.sb-item.active { color: var(--gold); border-left-color: var(--gold); background: rgba(255,255,255,.05); }
+.sb-num { font-family: var(--mono); font-size: .68rem; opacity:.45; min-width: 22px; margin-top: 1px; }
+.sb-progress { padding: 16px 22px 24px; margin-top: auto; }
+.sb-progress-label { font-family: var(--mono); font-size: .62rem; color: rgba(200,192,176,.4); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 8px; }
+.sb-progress-bar { background: rgba(255,255,255,.1); height: 3px; border-radius: 2px; overflow: hidden; }
+.sb-progress-fill { height: 100%; background: var(--gold); transition: width .4s; }
+
+/* ─── TOPBAR ─── */
+#topbar {
+  position: sticky; top:0; z-index: 100;
+  background: rgba(248,245,239,.96); backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: stretch;
+  overflow-x: auto; gap: 0;
+  -ms-overflow-style: none; scrollbar-width: none;
+}
+#topbar::-webkit-scrollbar { display: none; }
+.tb-item {
+  padding: 14px 18px; font-family: var(--mono); font-size: .72rem;
+  letter-spacing: .05em; color: var(--muted); cursor: pointer;
+  white-space: nowrap; border-bottom: 2px solid transparent;
+  transition: all .15s; flex-shrink: 0;
+}
+.tb-item:hover { color: var(--ink); border-bottom-color: var(--border); }
+.tb-item.active { color: var(--red); border-bottom-color: var(--red); }
+
+/* ─── HERO ─── */
+#hero {
+  background: var(--ink); color: #f0e8d8;
+  padding: 80px 88px 70px;
+  position: relative; overflow: hidden;
+}
+#hero::before {
+  content:''; position:absolute; top:-100px; right:-80px;
+  width:500px; height:500px; border-radius:50%;
+  background: radial-gradient(circle, rgba(200,144,32,.1) 0%, transparent 65%);
+  pointer-events:none;
+}
+#hero::after {
+  content:''; position:absolute; bottom:-60px; left:80px;
+  width:360px; height:360px; border-radius:50%;
+  background: radial-gradient(circle, rgba(192,57,43,.07) 0%, transparent 65%);
+  pointer-events:none;
+}
+.hero-label {
+  font-family: var(--mono); font-size: .72rem; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--gold); margin-bottom: 18px;
+}
+.hero-h1 {
+  font-family: var(--serif); font-size: 3.2rem; font-weight: 700;
+  line-height: 1.12; margin-bottom: 22px; position: relative;
+}
+.hero-h1 em { color: var(--gold); font-style: italic; }
+.hero-lead {
+  font-size: 1.05rem; line-height: 1.75; color: rgba(240,232,216,.72);
+  max-width: 560px; margin-bottom: 36px;
+}
+.hero-pills { display: flex; gap: 12px; flex-wrap: wrap; }
+.hero-pill {
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.13);
+  padding: 7px 14px; border-radius: 3px; font-family: var(--mono);
+  font-size: .72rem; color: rgba(240,232,216,.6); letter-spacing: .03em;
+}
+.hero-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 1px; background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.08); border-radius: 4px;
+  margin-top: 44px; overflow: hidden;
+}
+.hero-stat { background: rgba(0,0,0,.3); padding: 18px 20px; }
+.hero-stat-n { font-family: var(--mono); font-size: 1.6rem; font-weight: 600; color: var(--gold); }
+.hero-stat-l { font-size: .72rem; color: rgba(240,232,216,.5); font-family: var(--sans); margin-top: 3px; }
+
+/* ─── CONTENT WRAPPER ─── */
+.content-wrap { max-width: var(--content-max); margin: 0 auto; padding: 0 64px 120px; }
+
+/* ─── SECTIONS ─── */
+.module { display: none; padding-top: 60px; }
+.module.active { display: block; animation: fadeUp .35s ease; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+
+.module-eyebrow {
+  font-family: var(--mono); font-size: .7rem; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+}
+.module-title {
+  font-family: var(--serif); font-size: 2.5rem; font-weight: 700;
+  line-height: 1.15; color: var(--ink); margin-bottom: 6px; margin-top: 0;
+}
+.module-subtitle {
+  font-size: 1.05rem; color: var(--muted); font-style: italic;
+  margin-bottom: 0;
+}
+.module-rule { width: 48px; height: 3px; background: var(--red); margin: 22px 0 36px; }
+
+/* ─── SUB-SECTIONS within a module ─── */
+.subsection {
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 6px; margin: 32px 0; overflow: hidden;
+}
+.subsection-header {
+  background: var(--surface2); border-bottom: 1px solid var(--border2);
+  padding: 14px 24px; display: flex; align-items: center; gap: 12px;
+  cursor: pointer; user-select: none;
+}
+.subsection-header:hover { background: #e8e2d4; }
+.subsection-icon {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: .75rem; font-weight: 600;
+  flex-shrink: 0; color: #fff;
+}
+.ic-red { background: var(--red); }
+.ic-blue { background: var(--blue); }
+.ic-green { background: var(--green); }
+.ic-amber { background: var(--amber); }
+.ic-violet { background: var(--violet); }
+.ic-dark { background: var(--ink); }
+.subsection-title { font-family: var(--sans); font-size: .95rem; font-weight: 600; flex: 1; }
+.subsection-toggle { font-family: var(--mono); font-size: .8rem; color: var(--muted); transition: transform .2s; }
+.subsection.closed .subsection-toggle { transform: rotate(-90deg); }
+.subsection-body { padding: 24px 28px; display: block; }
+.subsection.closed .subsection-body { display: none; }
+
+/* ─── BOXES ─── */
+.box {
+  border-radius: 4px; padding: 18px 22px; margin: 20px 0;
+  border-left: 4px solid; position: relative;
+}
+.box-label {
+  font-family: var(--mono); font-size: .65rem; letter-spacing: .12em;
+  text-transform: uppercase; font-weight: 600; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.box p, .box ul, .box ol { margin-bottom: .5em; font-size: .93rem; }
+.box p:last-child, .box ul:last-child { margin-bottom: 0; }
+
+.def   { background: var(--blue-bg);   border-color: var(--blue);   }
+.def   .box-label { color: var(--blue);   }
+.thm   { background: var(--amber-bg);  border-color: var(--amber);  }
+.thm   .box-label { color: var(--amber);  }
+.insight { background: var(--green-bg); border-color: var(--green); }
+.insight .box-label { color: var(--green); }
+.warn  { background: var(--red-bg);    border-color: var(--red);    }
+.warn  .box-label { color: var(--red);    }
+.note  { background: var(--violet-bg); border-color: var(--violet); }
+.note  .box-label { color: var(--violet); }
+.example { background: #f5f3ee; border-color: #a89870; border-left-width: 3px; }
+.example .box-label { color: #6b5c3e; }
+
+/* ─── MATH BLOCKS ─── */
+.math-block {
+  background: var(--code-bg); color: var(--code-fg);
+  padding: 20px 26px; border-radius: 5px; margin: 18px 0;
+  font-family: var(--mono); font-size: .88rem; overflow-x: auto;
+  line-height: 1.8;
+}
+.math-block .c  { color: var(--code-com); }
+.math-block .k  { color: var(--code-key); }
+.math-block .n  { color: var(--code-num); }
+.math-block .s  { color: var(--code-str); }
+.math-block .hl { background: rgba(255,255,255,.06); display: block; margin: 0 -26px; padding: 2px 26px; border-left: 3px solid var(--gold); }
+
+/* ─── TABLES ─── */
+.tbl-wrap { overflow-x: auto; margin: 20px 0; }
+table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+thead tr { background: var(--ink); color: #f0e8d8; }
+thead th { padding: 11px 14px; text-align: left; font-family: var(--mono); font-size: .72rem; letter-spacing: .06em; font-weight: 500; }
+tbody tr { border-bottom: 1px solid var(--border2); }
+tbody tr:hover { background: var(--surface2); }
+tbody td { padding: 10px 14px; line-height: 1.5; vertical-align: top; }
+tbody td:first-child { font-family: var(--mono); font-size: .82rem; color: var(--blue); white-space: nowrap; }
+
+/* ─── STEPS ─── */
+.steps { margin: 24px 0; }
+.step { display: flex; gap: 16px; margin-bottom: 18px; align-items: flex-start; }
+.step-badge {
+  width: 32px; height: 32px; border-radius: 50%; background: var(--ink);
+  color: var(--gold); font-family: var(--mono); font-size: .78rem; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;
+}
+.step-body h5 { font-family: var(--sans); font-size: .95rem; font-weight: 600; color: var(--ink); text-transform: none; letter-spacing: 0; margin: 0 0 4px; }
+.step-body p { font-size: .9rem; color: var(--ink2); margin: 0; }
+
+/* ─── GRID CARDS ─── */
+.card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+.card {
+  background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 5px; padding: 20px; border-top: 3px solid;
+}
+.card-red    { border-top-color: var(--red);    }
+.card-blue   { border-top-color: var(--blue);   }
+.card-green  { border-top-color: var(--green);  }
+.card-amber  { border-top-color: var(--amber);  }
+.card-violet { border-top-color: var(--violet); }
+.card-dark   { border-top-color: var(--ink);    }
+.card h4 { font-family: var(--sans); font-size: .92rem; font-weight: 600; margin: 0 0 8px; color: var(--ink); }
+.card p { font-size: .86rem; color: var(--muted); margin: 0; line-height: 1.6; }
+
+/* ─── PROOF TOGGLE ─── */
+.proof-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid var(--border); background: none; padding: 7px 16px;
+  border-radius: 3px; font-family: var(--mono); font-size: .73rem;
+  letter-spacing: .07em; cursor: pointer; color: var(--muted);
+  margin: 8px 0; transition: all .15s;
+}
+.proof-btn:hover { border-color: var(--blue); color: var(--blue); }
+.proof-content {
+  background: #f5f3ee; border: 1px solid var(--border2); border-radius: 4px;
+  padding: 18px 22px; margin-bottom: 14px; font-size: .9rem; line-height: 1.75;
+  display: none;
+}
+.proof-content.open { display: block; }
+.proof-content p { margin-bottom: .7em; }
+
+/* ─── QUIZ ─── */
+.quiz {
+  background: var(--surface); border: 2px solid var(--border);
+  border-radius: 6px; padding: 24px 26px; margin: 28px 0;
+}
+.quiz-tag { font-family: var(--mono); font-size: .65rem; letter-spacing: .12em; text-transform: uppercase; color: var(--amber); margin-bottom: 10px; }
+.quiz-q { font-size: .97rem; font-weight: 600; margin-bottom: 14px; }
+.quiz-opts { display: flex; flex-direction: column; gap: 8px; }
+.quiz-opt {
+  display: flex; align-items: flex-start; gap: 10px;
+  border: 1px solid var(--border2); padding: 11px 14px; border-radius: 4px;
+  cursor: pointer; transition: all .15s; font-size: .9rem;
+}
+.quiz-opt:hover { border-color: var(--blue); background: var(--blue-bg); }
+.quiz-opt.correct { border-color: var(--green); background: var(--green-bg); }
+.quiz-opt.wrong   { border-color: var(--red);   background: var(--red-bg);  }
+.quiz-opt-key {
+  font-family: var(--mono); font-size: .73rem; width: 22px; height: 22px;
+  background: var(--surface2); border-radius: 50%; display: flex;
+  align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
+}
+.quiz-fb { margin-top: 12px; padding: 12px 16px; border-radius: 4px; font-size: .88rem; display: none; }
+.quiz-fb.show { display: block; }
+.quiz-fb.correct { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-br); }
+.quiz-fb.wrong   { background: var(--red-bg);   color: var(--red);   border: 1px solid var(--red-br);   }
+
+/* ─── INTERACTIVE ─── */
+.interactive {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 22px 26px; margin: 24px 0;
+}
+.interactive-title { font-family: var(--sans); font-size: .92rem; font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.int-badge { background: var(--blue); color:#fff; font-family:var(--mono); font-size:.68rem; padding:2px 8px; border-radius:3px; letter-spacing:.06em; }
+.int-label { font-family: var(--mono); font-size: .72rem; color: var(--muted); display: block; margin-bottom: 5px; }
+.int-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 12px; }
+.int-input {
+  width: 72px; padding: 7px 10px; border: 1px solid var(--border);
+  border-radius: 3px; font-family: var(--mono); font-size: .88rem;
+  background: var(--surface); color: var(--ink);
+}
+.int-input-wide { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 3px; font-family: var(--mono); font-size: .88rem; background: var(--surface); color: var(--ink); }
+.int-btn {
+  background: var(--ink); color: #f0e8d8; border: none; padding: 9px 20px;
+  border-radius: 3px; font-family: var(--mono); font-size: .78rem;
+  letter-spacing: .06em; cursor: pointer; transition: background .15s;
+}
+.int-btn:hover { background: var(--red); }
+.int-out {
+  background: var(--code-bg); color: var(--code-fg); padding: 14px 16px;
+  border-radius: 4px; font-family: var(--mono); font-size: .82rem;
+  min-height: 48px; white-space: pre-wrap; line-height: 1.65; margin-top: 12px;
+}
+canvas { display: block; margin: 12px auto; max-width: 100%; border-radius: 4px; border: 1px solid var(--border2); }
+input[type=range] { width: 100%; accent-color: var(--blue); margin: 4px 0; }
+
+/* ─── FLOW DIAGRAM ─── */
+.flow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; padding: 18px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 5px; margin: 20px 0; }
+.flow-node { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 10px 14px; text-align: center; min-width: 80px; font-size: .83rem; }
+.flow-node strong { display: block; font-family: var(--mono); font-size: .8rem; color: var(--blue); margin-bottom: 2px; }
+.flow-arrow { color: var(--muted); font-size: 1.3rem; }
+
+/* ─── FORMULA STRIP ─── */
+.formula-strip {
+  background: var(--ink); color: #f0e8d8;
+  padding: 20px 26px; border-radius: 5px; margin: 20px 0;
+  display: flex; gap: 30px; flex-wrap: wrap; align-items: center;
+}
+.formula-strip-item { text-align: center; }
+.formula-strip-item .label { font-family: var(--mono); font-size: .65rem; color: rgba(240,232,216,.45); letter-spacing: .1em; text-transform: uppercase; display: block; margin-bottom: 5px; }
+
+/* ─── SUMMARY BANNER ─── */
+.summary {
+  background: var(--ink); color: #f0e8d8;
+  padding: 28px 30px; border-radius: 6px; margin: 32px 0;
+}
+.summary h3 { font-family: var(--serif); font-size: 1.3rem; color: var(--gold); border: none; margin: 0 0 16px; padding: 0; }
+.summary ul { list-style: none; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.summary li { font-size: .87rem; color: rgba(240,232,216,.78); display: flex; gap: 8px; line-height: 1.5; }
+.summary li::before { content: '→'; color: var(--gold); font-family: var(--mono); flex-shrink: 0; margin-top: 1px; }
+
+/* ─── HIGHLIGHT INLINE ─── */
+mark { background: rgba(200,144,32,.2); padding: 0 2px; border-radius: 2px; }
+.mono { font-family: var(--mono); background: var(--surface2); padding: 1px 6px; border-radius: 3px; font-size: .88em; }
+.tag { font-family: var(--mono); font-size: .68rem; padding: 2px 8px; border-radius: 12px; margin-left: 6px; display: inline-block; vertical-align: middle; }
+.tag-dl { background: var(--blue-bg); color: var(--blue); }
+.tag-new { background: var(--amber-bg); color: var(--amber); }
+.tag-key { background: var(--red-bg); color: var(--red); }
+
+/* ─── SEPARATOR ─── */
+hr { border: none; border-top: 1px solid var(--border2); margin: 28px 0; }
+
+/* ─── MOBILE ─── */
+#mob-btn { display:none; position:fixed; top:14px; left:14px; z-index:300; background:var(--ink); color:var(--gold); border:none; width:40px; height:40px; border-radius:4px; font-size:1.1rem; cursor:pointer; align-items:center; justify-content:center; }
+@media(max-width:860px){
+  #mob-btn { display:flex; }
+  #sidebar { transform: translateX(-100%); }
+  #sidebar.open { transform: translateX(0); }
+  #main { margin-left: 0; }
+  #hero { padding: 56px 28px 48px; }
+  .hero-h1 { font-size: 2.1rem; }
+  .hero-stats { grid-template-columns: 1fr 1fr; }
+  .content-wrap { padding: 0 22px 80px; }
+  .card-grid { grid-template-columns: 1fr; }
+  .summary ul { grid-template-columns: 1fr; }
+  .formula-strip { flex-direction: column; }
+}
+
+/* ─── STRANG REF ─── */
+.strang { font-family:var(--mono); font-size:.67rem; background:var(--surface2); border:1px solid var(--border); padding:1px 8px; border-radius:3px; color:var(--muted); margin-left:5px; white-space:nowrap; }
+
+/* ─── MATRIX DISPLAY ─── */
+.matrix-display {
+  font-family: var(--mono); background: var(--code-bg); color: var(--code-fg);
+  padding: 14px 18px; border-radius: 4px; font-size: .86rem; line-height: 1.7;
+  margin: 12px 0; overflow-x: auto;
+}
+.matrix-display .lbl { color: var(--gold); font-size: .72rem; }
+
+/* ─── NUMBER CALLOUT ─── */
+.callout-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 20px 0; }
+.callout { background: var(--surface); border: 1px solid var(--border2); border-radius: 5px; padding: 18px; text-align: center; }
+.callout-n { font-family: var(--mono); font-size: 2rem; font-weight: 600; color: var(--red); line-height: 1; margin-bottom: 6px; }
+.callout-l { font-size: .8rem; color: var(--muted); font-family: var(--sans); }
+</style>
+</head>
+<body>
+
+<button id="mob-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<nav id="sidebar">
+  <div class="sb-brand">
+    <div class="sb-brand-title">Linear Algebra<br>for Deep Learning</div>
+    <div class="sb-brand-sub">Complete Study Guide</div>
+  </div>
+
+  <div class="sb-section-label">Foundations</div>
+  <div class="sb-item active" onclick="go('m0',this)"><span class="sb-num">00</span>Overview & Roadmap</div>
+  <div class="sb-item" onclick="go('m1',this)"><span class="sb-num">01</span>Vectors, Norms & Dot Products</div>
+  <div class="sb-item" onclick="go('m2',this)"><span class="sb-num">02</span>Matrices & Linear Maps</div>
+  <div class="sb-item" onclick="go('m3',this)"><span class="sb-num">03</span>Vector Spaces, Bases & Subspaces</div>
+
+  <div class="sb-section-label">Eigenstructure</div>
+  <div class="sb-item" onclick="go('m4',this)"><span class="sb-num">04</span>Eigenvalues & Eigenvectors</div>
+  <div class="sb-item" onclick="go('m5',this)"><span class="sb-num">05</span>Eigenvalue Decomposition</div>
+  <div class="sb-item" onclick="go('m6',this)"><span class="sb-num">06</span>Symmetric Matrices & Spectral Theorem</div>
+
+  <div class="sb-section-label">Applications</div>
+  <div class="sb-item" onclick="go('m7',this)"><span class="sb-num">07</span>Principal Component Analysis</div>
+  <div class="sb-item" onclick="go('m8',this)"><span class="sb-num">08</span>Singular Value Decomposition</div>
+
+  <div class="sb-section-label">Reference</div>
+  <div class="sb-item" onclick="go('m9',this)"><span class="sb-num">09</span>Proofs & Theorems</div>
+  <div class="sb-item" onclick="go('m10',this)"><span class="sb-num">10</span>Quick Reference & Cheatsheet</div>
+
+  <div class="sb-progress">
+    <div class="sb-progress-label">Progress</div>
+    <div class="sb-progress-bar"><div class="sb-progress-fill" id="prog-fill" style="width:9%"></div></div>
+  </div>
+</nav>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<div id="main">
+
+<!-- HERO -->
+<div id="hero">
+  <div class="hero-label">IIT Madras CS7015 · Gilbert Strang 4th Ed.</div>
+  <h1 class="hero-h1">Linear Algebra<br>for <em>Deep Learning</em></h1>
+  <p class="hero-lead">A thorough, in-depth study guide covering every concept needed for deep learning — from vectors and matrix operations through eigendecomposition, PCA, and SVD. Built directly from two authoritative sources.</p>
+  <div class="hero-pills">
+    <span class="hero-pill">📘 Strang — Linear Algebra & Its Applications (4th Ed.)</span>
+    <span class="hero-pill">🎓 IIT Madras CS7015 — Lecture 6</span>
+  </div>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="hero-stat-n">11</div><div class="hero-stat-l">Modules</div></div>
+    <div class="hero-stat"><div class="hero-stat-n">60+</div><div class="hero-stat-l">Definitions & Theorems</div></div>
+    <div class="hero-stat"><div class="hero-stat-n">12</div><div class="hero-stat-l">Interactive Tools</div></div>
+    <div class="hero-stat"><div class="hero-stat-n">8</div><div class="hero-stat-l">Practice Quizzes</div></div>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <div class="tb-item active" onclick="go('m0',null)">Roadmap</div>
+  <div class="tb-item" onclick="go('m1',null)">Vectors</div>
+  <div class="tb-item" onclick="go('m2',null)">Matrices</div>
+  <div class="tb-item" onclick="go('m3',null)">Spaces</div>
+  <div class="tb-item" onclick="go('m4',null)">Eigenvalues</div>
+  <div class="tb-item" onclick="go('m5',null)">EVD</div>
+  <div class="tb-item" onclick="go('m6',null)">Symmetric</div>
+  <div class="tb-item" onclick="go('m7',null)">PCA</div>
+  <div class="tb-item" onclick="go('m8',null)">SVD</div>
+  <div class="tb-item" onclick="go('m9',null)">Proofs</div>
+  <div class="tb-item" onclick="go('m10',null)">Reference</div>
+</div>
+
+<div class="content-wrap">
+
+<!-- ═══ MODULE 0: ROADMAP ═══ -->
+<div id="m0" class="module active">
+  <div class="module-eyebrow">Module 00</div>
+  <h1 class="module-title">Overview & Learning Roadmap</h1>
+  <p class="module-subtitle">Where we are going, why every concept matters, and how everything connects</p>
+  <div class="module-rule"></div>
+
+  <p>Linear algebra is the <mark>operating system of deep learning</mark>. Every single computation in a neural network — from the forward pass to backpropagation — reduces to matrix operations. Understanding this deeply is not optional; it is the foundation everything else rests on.</p>
+
+  <div class="flow">
+    <div class="flow-node"><strong>Vectors</strong>Data, weights, activations</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node"><strong>Matrices</strong>Layer transforms</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node"><strong>Subspaces</strong>What a layer can express</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node"><strong>Eigenvectors</strong>Principal directions</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node"><strong>EVD / SVD</strong>Matrix structure</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-node"><strong>PCA</strong>Compression</div>
+  </div>
+
+  <!-- Subsection: Why each module matters -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-red">DL</div>
+      <div class="subsection-title">Why Each Topic Matters for Deep Learning</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="card-grid">
+        <div class="card card-blue">
+          <h4>Vectors & Dot Products</h4>
+          <p>Every data point is a vector. Every neuron's output is a dot product \(\mathbf{w}^T\mathbf{x} + b\). Cosine similarity of embeddings uses dot products. Attention scores are scaled dot products.</p>
+        </div>
+        <div class="card card-red">
+          <h4>Matrix Multiplication</h4>
+          <p>Every dense layer computes \(y = Wx\). Batched training computes \(Y = XW^T\). The entire forward pass is a sequence of matrix-vector products. Backprop uses transposes \(W^T\).</p>
+        </div>
+        <div class="card card-amber">
+          <h4>Eigenvalues</h4>
+          <p>Eigenvalues of weight matrices control gradient flow. If \(|\lambda_{max}| > 1\), gradients explode. If \(|\lambda_{max}| < 1\), they vanish. Batch norm and gradient clipping fight these effects.</p>
+        </div>
+        <div class="card card-green">
+          <h4>Covariance & PCA</h4>
+          <p>Covariance matrices describe feature correlations. PCA removes redundancy before training. Batch normalization implicitly whitens feature distributions.</p>
+        </div>
+        <div class="card card-violet">
+          <h4>SVD & Low-Rank</h4>
+          <p>SVD is the foundation of LoRA fine-tuning (constraining weight updates to low-rank matrices). Spectral normalization divides weights by \(\sigma_1\) for GAN stability. Truncated SVD powers recommender systems.</p>
+        </div>
+        <div class="card card-dark">
+          <h4>Orthogonality</h4>
+          <p>Orthogonal weight initialization (QR decomposition) ensures signal preserves its norm at startup. Gram-Schmidt orthogonalization underlies many numerical methods in ML.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Subsection: Connections map -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-amber">★</div>
+      <div class="subsection-title">The Master Conceptual Thread</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="box insight">
+        <div class="box-label">🔗 Everything Connects</div>
+        <p>Here is the core idea that runs through all 10 modules:</p>
+        <p>A matrix \(A\) is a <em>linear transformation</em>. It stretches, rotates, and reflects vectors. The <strong>eigenvectors</strong> are the special directions that don't rotate — they only stretch, by factor \(\lambda\). For <strong>symmetric</strong> matrices (like covariance matrices), eigenvectors are orthogonal and form the perfect new coordinate system.</p>
+        <p><strong>PCA</strong> finds the eigenvectors of the covariance matrix \(\Sigma = \frac{1}{m}X^TX\) — these are the directions of maximum variance. Project your data onto the top \(k\) eigenvectors, and you've kept the most information in fewer dimensions.</p>
+        <p><strong>SVD</strong> extends this to any (rectangular) matrix. Every matrix \(A = U\Sigma V^T\) decomposes into a rotation \(V^T\), axis-aligned scaling \(\Sigma\), and another rotation \(U\). The singular values are \(\sigma_i = \sqrt{\lambda_i(A^TA)}\), connecting SVD back to eigenvalues.</p>
+      </div>
+
+      <h4>The Big Picture Equation</h4>
+      <div class="math-block"><span class="c">-- Neural forward pass --</span>
+y = W_L · ReLU( W_{L-1} · ... · ReLU(W_1 · x) ... )
+
+<span class="c">-- Each Wᵢ has an SVD: --</span>
+W_i = U_i · Σ_i · V_i^T
+      <span class="hl">-- So each layer = rotate input, scale each axis, rotate output --</span>
+<span class="c">-- Training learns the geometry (U, V) and importance (Σ) simultaneously --</span></div>
+
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Concept</th><th>DL Manifestation</th><th>Why It Matters</th></tr></thead>
+        <tbody>
+          <tr><td>Dot product</td><td>Neuron activation</td><td>Measures alignment between weights and input</td></tr>
+          <tr><td>Matrix multiply</td><td>Dense layer</td><td>Applies a learned linear transformation</td></tr>
+          <tr><td>Rank</td><td>Layer expressivity</td><td>Rank-deficient layer loses information</td></tr>
+          <tr><td>Eigenvalue magnitude</td><td>Gradient stability</td><td>Controls exploding/vanishing gradients in RNNs</td></tr>
+          <tr><td>Covariance matrix</td><td>Feature statistics</td><td>Batch norm whitens this to speed training</td></tr>
+          <tr><td>PCA</td><td>Dimensionality reduction</td><td>Remove noise, speed up downstream models</td></tr>
+          <tr><td>SVD</td><td>LoRA, spectral norm</td><td>Efficient fine-tuning, GAN stabilization</td></tr>
+          <tr><td>Orthogonality</td><td>Weight init (QR)</td><td>Preserves gradient norms at initialization</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- Subsection: How to use this guide -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-dark">📖</div>
+      <div class="subsection-title">How to Use This Guide</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <p>Each module is organized into <strong>collapsible subsections</strong> covering: core theory, definitions, derivations, worked examples, visualizations, deep learning connections, practice problems, and proofs. Click any subsection header to expand or collapse it.</p>
+      <div class="steps">
+        <div class="step"><div class="step-badge">1</div><div class="step-body"><h5>Read the module intro</h5><p>Each module opens with context — what we're doing and why it matters. Don't skip this.</p></div></div>
+        <div class="step"><div class="step-badge">2</div><div class="step-body"><h5>Work through subsections in order</h5><p>Definitions → Derivations → Examples → DL Connections → Practice. Each layer builds on the last.</p></div></div>
+        <div class="step"><div class="step-badge">3</div><div class="step-body"><h5>Use the interactive tools</h5><p>The calculators and visualizers are not optional extras — they build the geometric intuition that makes formulas memorable.</p></div></div>
+        <div class="step"><div class="step-badge">4</div><div class="step-body"><h5>Test yourself on quizzes</h5><p>Each module has 1–2 quiz questions. Don't look up the answer first — struggle with it, then check.</p></div></div>
+        <div class="step"><div class="step-badge">5</div><div class="step-body"><h5>Expand proofs when ready</h5><p>Proofs are collapsible — skip them on first read, return when you want deeper understanding.</p></div></div>
+      </div>
+    </div>
+  </div>
+</div><!-- end m0 -->
+
+
+<!-- ═══ MODULE 1: VECTORS ═══ -->
+<div id="m1" class="module">
+  <div class="module-eyebrow">Module 01</div>
+  <h1 class="module-title">Vectors, Norms & Dot Products</h1>
+  <p class="module-subtitle">The atomic objects of linear algebra — and of every neural network</p>
+  <div class="module-rule"></div>
+
+  <p>A <strong>vector</strong> is the fundamental object in linear algebra. In deep learning, almost everything is a vector: an input data point, a weight vector, an activation, a gradient, an embedding. Before we can understand matrices, transformations, or decompositions, we must own vectors completely.</p>
+
+  <!-- 1.1 What is a vector -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-blue">1.1</div>
+      <div class="subsection-title">What Is a Vector? Geometric vs. Algebraic View</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="box def">
+        <div class="box-label">📐 Definition — Vector in ℝⁿ</div>
+        <p>A vector \(\mathbf{x} \in \mathbb{R}^n\) is an ordered list of \(n\) real numbers, written as a <em>column</em>:</p>
+        \[\mathbf{x} = \begin{bmatrix} x_1 \\ x_2 \\ \vdots \\ x_n \end{bmatrix}\]
+        <p>The integer \(n\) is the <strong>dimension</strong> of the vector.</p>
+      </div>
+
+      <p>There are two ways to think about a vector, and you must be fluent in both:</p>
+      <div class="card-grid">
+        <div class="card card-blue">
+          <h4>Algebraic View</h4>
+          <p>A vector is a list of coordinates. \([3, -1, 2]^T\) in \(\mathbb{R}^3\) means "3 units in the first direction, −1 in the second, 2 in the third." This is what your code sees: an array of numbers.</p>
+        </div>
+        <div class="card card-red">
+          <h4>Geometric View</h4>
+          <p>A vector is an arrow from the origin to a point in space. Its <em>length</em> (magnitude) and <em>direction</em> are what matter geometrically. Two vectors with the same direction but different lengths are scalar multiples of each other.</p>
+        </div>
+      </div>
+
+      <div class="box insight">
+        <div class="box-label">🧠 Deep Learning — Every Layer Input Is a Vector</div>
+        <p>When you feed an image to a neural network, you first <em>flatten</em> it into a vector: a 28×28 image becomes a vector in \(\mathbb{R}^{784}\). A sentence represented with word embeddings is a sequence of vectors in \(\mathbb{R}^{512}\) (or whatever the embedding dim is). The weights of a single neuron also form a vector.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1.2 Norms -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-red">1.2</div>
+      <div class="subsection-title">Vector Norms — Measuring Length</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="box def">
+        <div class="box-label">📐 Definition — General p-Norm</div>
+        \[\|\mathbf{x}\|_p = \left( \sum_{i=1}^n |x_i|^p \right)^{1/p}, \quad p \geq 1\]
+      </div>
+
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Norm</th><th>Formula</th><th>Geometry</th><th>DL Use</th></tr></thead>
+        <tbody>
+          <tr><td>L1 (Manhattan)</td><td>\(\sum_i |x_i|\)</td><td>City-block distance</td><td>Lasso regularization; encourages sparsity</td></tr>
+          <tr><td>L2 (Euclidean)</td><td>\(\sqrt{\sum_i x_i^2} = \sqrt{\mathbf{x}^T\mathbf{x}}\)</td><td>Straight-line distance</td><td>Ridge regularization; most common norm</td></tr>
+          <tr><td>L∞ (Max)</td><td>\(\max_i |x_i|\)</td><td>Chebyshev distance</td><td>Adversarial perturbation budgets (\(\epsilon\)-ball)</td></tr>
+          <tr><td>L0 "norm"</td><td>Count of nonzeros</td><td>Sparsity count</td><td>Not a true norm; used in sparse coding</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="box def">
+        <div class="box-label">📐 Definition — Unit Vector & Normalization</div>
+        <p>A vector with \(\|\mathbf{x}\|_2 = 1\) is called a <strong>unit vector</strong>. To <strong>normalize</strong> any nonzero vector: \(\hat{\mathbf{x}} = \mathbf{x} / \|\mathbf{x}\|_2\). The hat symbol \(\hat{}\) always means unit vector.</p>
+      </div>
+
+      <div class="box note">
+        <div class="box-label">📝 Properties Every Norm Must Satisfy</div>
+        <ul>
+          <li><strong>Non-negativity:</strong> \(\|\mathbf{x}\| \geq 0\), and \(\|\mathbf{x}\| = 0\) iff \(\mathbf{x} = \mathbf{0}\)</li>
+          <li><strong>Scalar homogeneity:</strong> \(\|c\mathbf{x}\| = |c| \cdot \|\mathbf{x}\|\)</li>
+          <li><strong>Triangle inequality:</strong> \(\|\mathbf{x} + \mathbf{y}\| \leq \|\mathbf{x}\| + \|\mathbf{y}\|\)</li>
+        </ul>
+      </div>
+
+      <!-- Interactive Norm Calculator -->
+      <div class="interactive">
+        <div class="interactive-title"><span class="int-badge">INTERACTIVE</span> Norm Calculator</div>
+        <span class="int-label">Enter a vector (comma-separated values, e.g. 3,-4,1,2)</span>
+        <div class="int-row">
+          <input type="text" class="int-input-wide" id="norm-vec" value="3,-4,0,2" style="max-width:320px">
+          <button class="int-btn" onclick="calcNorms()">Compute All Norms →</button>
+        </div>
+        <div class="int-out" id="norm-out">Enter a vector and press Compute.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1.3 Dot Product -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-green">1.3</div>
+      <div class="subsection-title">The Dot Product — The Most Important Operation</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="box def">
+        <div class="box-label">📐 Definition — Dot Product (Inner Product)</div>
+        \[\mathbf{x} \cdot \mathbf{y} = \mathbf{x}^T \mathbf{y} = \sum_{i=1}^n x_i y_i\]
+        <p style="margin-top:10px">Geometrically: \(\mathbf{x}^T\mathbf{y} = \|\mathbf{x}\|_2 \|\mathbf{y}\|_2 \cos\theta\) where \(\theta\) is the angle between the vectors.</p>
+      </div>
+
+      <p>The geometric formula is the key: the dot product measures <strong>how aligned</strong> two vectors are. If \(\theta = 0°\), they're parallel, dot product = product of lengths. If \(\theta = 90°\), they're perpendicular, dot product = 0. This is why the dot product is the natural <em>similarity measure</em>.</p>
+
+      <div class="box def">
+        <div class="box-label">📐 Definition — Orthogonality</div>
+        <p>Vectors \(\mathbf{x}\) and \(\mathbf{y}\) are <strong>orthogonal</strong> if \(\mathbf{x}^T\mathbf{y} = 0\). They point in completely independent directions — knowing the component along \(\mathbf{x}\) tells you nothing about the component along \(\mathbf{y}\).</p>
+      </div>
+
+      <div class="box def">
+        <div class="box-label">📐 Definition — Cosine Similarity</div>
+        \[\text{sim}(\mathbf{x}, \mathbf{y}) = \frac{\mathbf{x}^T\mathbf{y}}{\|\mathbf{x}\|_2 \|\mathbf{y}\|_2} = \cos\theta \in [-1, 1]\]
+        <p style="margin-top:8px">Cosine similarity is the dot product of the <em>normalized</em> vectors. It measures angle (direction similarity) ignoring magnitude.</p>
+      </div>
+
+      <h4>Key Properties of the Dot Product</h4>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Property</th><th>Formula</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>Commutativity</td><td>\(\mathbf{x}^T\mathbf{y} = \mathbf{y}^T\mathbf{x}\)</td><td>Order doesn't matter</td></tr>
+          <tr><td>Linearity</td><td>\((a\mathbf{x}+b\mathbf{y})^T\mathbf{z} = a(\mathbf{x}^T\mathbf{z}) + b(\mathbf{y}^T\mathbf{z})\)</td><td>Distributes over addition</td></tr>
+          <tr><td>Self-dot = squared norm</td><td>\(\mathbf{x}^T\mathbf{x} = \|\mathbf{x}\|_2^2\)</td><td>Length squared</td></tr>
+          <tr><td>Cauchy–Schwarz</td><td>\(|\mathbf{x}^T\mathbf{y}| \leq \|\mathbf{x}\| \cdot \|\mathbf{y}\|\)</td><td>\(|\cos\theta| \leq 1\) always</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="box insight">
+        <div class="box-label">🧠 Deep Learning — Everything Is Dot Products</div>
+        <p>A neuron computes: \(\text{output} = \sigma(\mathbf{w}^T\mathbf{x} + b)\). The core is \(\mathbf{w}^T\mathbf{x}\) — a dot product between weight vector \(\mathbf{w}\) and input \(\mathbf{x}\). A neuron fires strongly when \(\mathbf{w}\) and \(\mathbf{x}\) are aligned (similar direction). This is the geometric meaning of a neuron: it is a <em>direction detector</em>.</p>
+        <p>In transformers, attention scores are \(\text{score}(q, k) = q^T k / \sqrt{d_k}\) — a scaled dot product between query and key vectors. High score = high alignment = attend to that token.</p>
+        <p>Word embeddings: <em>king − man + woman ≈ queen</em> works because these linear operations on vectors correspond to meaningful geometric relationships.</p>
+      </div>
+
+      <!-- Interactive Dot Product -->
+      <div class="interactive">
+        <div class="interactive-title"><span class="int-badge">INTERACTIVE</span> Dot Product & Angle Visualizer</div>
+        <div class="int-row">
+          <div><span class="int-label">x = [x₁, x₂]</span><div style="display:flex;gap:6px"><input type="number" class="int-input" id="v1x" value="3"><input type="number" class="int-input" id="v1y" value="1"></div></div>
+          <div><span class="int-label">y = [y₁, y₂]</span><div style="display:flex;gap:6px"><input type="number" class="int-input" id="v2x" value="1"><input type="number" class="int-input" id="v2y" value="3"></div></div>
+          <button class="int-btn" onclick="calcDot()" style="margin-bottom:0;align-self:flex-end">Compute →</button>
+        </div>
+        <div class="int-out" id="dot-out">Enter vectors and press Compute.</div>
+        <canvas id="dot-canvas" width="360" height="240"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1.4 Vector operations -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-amber">1.4</div>
+      <div class="subsection-title">Vector Operations & Linear Combinations</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="box def">
+        <div class="box-label">📐 Definition — Linear Combination</div>
+        <p>A <strong>linear combination</strong> of vectors \(\mathbf{v}_1, \ldots, \mathbf{v}_k\) with scalars \(c_1, \ldots, c_k\) is:</p>
+        \[c_1\mathbf{v}_1 + c_2\mathbf{v}_2 + \cdots + c_k\mathbf{v}_k\]
+        <p>The set of <em>all possible</em> linear combinations is the <strong>span</strong> of those vectors.</p>
+      </div>
+
+      <div class="box example">
+        <div class="box-label">📋 Example — Linear Combination in Context</div>
+        <p>In a neural network, the output of a layer is a linear combination of input features:</p>
+        \[y = w_1 x_1 + w_2 x_2 + \cdots + w_n x_n = \mathbf{w}^T \mathbf{x}\]
+        <p>The <em>weights</em> \(w_i\) are the coefficients of the linear combination. The network learns which combination of input features is relevant.</p>
+      </div>
+
+      <h4>Outer Product — Creating a Matrix from Two Vectors</h4>
+      <p>The <strong>outer product</strong> \(\mathbf{u}\mathbf{v}^T\) produces a matrix. If \(\mathbf{u} \in \mathbb{R}^m\) and \(\mathbf{v} \in \mathbb{R}^n\), then \(\mathbf{u}\mathbf{v}^T \in \mathbb{R}^{m\times n}\) with entry \((i,j) = u_i v_j\). This is a <strong>rank-1 matrix</strong> — critical for SVD and attention mechanisms.</p>
+
+      <div class="math-block"><span class="lbl">-- Outer product example --</span>
+u = [1, 2]ᵀ,   v = [3, 0, -1]ᵀ
+
+uvᵀ = [1·3  1·0  1·(-1)]  =  [ 3   0  -1 ]
+      [2·3  2·0  2·(-1)]     [ 6   0  -2 ]
+
+<span class="c">-- This is a rank-1 matrix. Every column is a multiple of u. --</span>
+<span class="c">-- SVD writes any matrix as sum of rank-1 outer products: A = Σ σᵢ uᵢvᵢᵀ --</span></div>
+
+      <!-- Quiz -->
+      <div class="quiz">
+        <div class="quiz-tag">✦ Check Your Understanding</div>
+        <div class="quiz-q">If \(\mathbf{x}^T \mathbf{y} = 0\) and both vectors are nonzero, what is the angle between them?</div>
+        <div class="quiz-opts">
+          <div class="quiz-opt" onclick="chk(this,false,'q1')"><span class="quiz-opt-key">A</span>0° — they point in the same direction</div>
+          <div class="quiz-opt" onclick="chk(this,true,'q1')"><span class="quiz-opt-key">B</span>90° — they are orthogonal (perpendicular)</div>
+          <div class="quiz-opt" onclick="chk(this,false,'q1')"><span class="quiz-opt-key">C</span>180° — they point in opposite directions</div>
+          <div class="quiz-opt" onclick="chk(this,false,'q1')"><span class="quiz-opt-key">D</span>45° — they are at half-angle</div>
+        </div>
+        <div class="quiz-fb" id="q1"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1.5 Projection -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-violet">1.5</div>
+      <div class="subsection-title">Vector Projection — The Foundation of PCA</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="box def">
+        <div class="box-label">📐 Definition — Projection of x onto unit vector u</div>
+        \[\text{proj}_{\mathbf{u}} \mathbf{x} = (\mathbf{u}^T \mathbf{x})\, \mathbf{u}\]
+        <p style="margin-top:8px">The scalar \(\alpha = \mathbf{u}^T\mathbf{x}\) is the <strong>coordinate</strong> (how far along \(\mathbf{u}\) the projection reaches). The vector \(\alpha\,\mathbf{u}\) is the <strong>projected vector</strong>. If \(\mathbf{u}\) is not unit, divide: \(\text{proj}_\mathbf{u}\mathbf{x} = \frac{\mathbf{u}^T\mathbf{x}}{\mathbf{u}^T\mathbf{u}}\mathbf{u}\).</p>
+      </div>
+
+      <div class="box insight">
+        <div class="box-label">🧠 Why Projection Is the Heart of PCA</div>
+        <p>In PCA, we project each data point \(\mathbf{x}_i\) onto a direction \(\mathbf{u}\) (a principal component). The scalar coordinate \(\alpha_i = \mathbf{u}^T\mathbf{x}_i\) is the <em>compressed representation</em>. PCA chooses \(\mathbf{u}\) to maximize the variance of these coordinates across the dataset. The key formula: <strong>variance along direction \(\mathbf{u}\) = \(\mathbf{u}^T \Sigma \mathbf{u}\)</strong>, where \(\Sigma\) is the covariance matrix.</p>
+      </div>
+
+      <div class="box example">
+        <div class="box-label">📋 Worked Example</div>
+        <p>Project \(\mathbf{x} = [3, 3]^T\) onto \(\mathbf{u} = [1/\sqrt{2},\, 1/\sqrt{2}]^T\) (the diagonal direction):</p>
+        \[\alpha = \mathbf{u}^T\mathbf{x} = \frac{1}{\sqrt{2}}\cdot 3 + \frac{1}{\sqrt{2}}\cdot 3 = \frac{6}{\sqrt{2}} = 3\sqrt{2}\]
+        \[\text{proj}_\mathbf{u}\mathbf{x} = 3\sqrt{2} \cdot \begin{bmatrix}1/\sqrt{2}\\1/\sqrt{2}\end{bmatrix} = \begin{bmatrix}3\\3\end{bmatrix}\]
+        <p>\(\mathbf{x}\) lies exactly on the diagonal — zero reconstruction error. This is why the diagonal is the first principal component when data lies along it!</p>
+      </div>
+    </div>
+  </div>
+</div><!-- end m1 -->
+
+
+<!-- ═══ MODULE 2: MATRICES ═══ -->
+<div id="m2" class="module">
+  <div class="module-eyebrow">Module 02</div>
+  <h1 class="module-title">Matrices & Linear Maps</h1>
+  <p class="module-subtitle">How matrices encode transformations — and what they do geometrically</p>
+  <div class="module-rule"></div>
+
+  <p>A matrix is a rectangular array of numbers, but more importantly, it is a <mark>linear transformation</mark> between vector spaces. Every dense layer in a neural network is a matrix. Understanding what matrices <em>do</em> geometrically — before we worry about how to decompose them — is critical.</p>
+
+  <!-- 2.1 Matrix basics -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-blue">2.1</div>
+      <div class="subsection-title">Matrix Basics — Shape, Notation, Types</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="box def">
+        <div class="box-label">📐 Definition — Matrix</div>
+        <p>A matrix \(A \in \mathbb{R}^{m \times n}\) has \(m\) rows and \(n\) columns. It represents a linear map \(A: \mathbb{R}^n \to \mathbb{R}^m\). Entry \(A_{ij}\) is in row \(i\), column \(j\).</p>
+      </div>
+
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Special Matrix</th><th>Definition</th><th>Key Property</th></tr></thead>
+        <tbody>
+          <tr><td>Identity \(I_n\)</td><td>\(I_{ij} = 1\) if \(i=j\), else 0</td><td>\(IA = AI = A\) for square \(A\)</td></tr>
+          <tr><td>Diagonal \(D\)</td><td>\(D_{ij} = 0\) for \(i \neq j\)</td><td>Scales each axis independently</td></tr>
+          <tr><td>Symmetric \(S\)</td><td>\(S = S^T\)</td><td>Real eigenvalues, orthogonal eigenvectors</td></tr>
+          <tr><td>Orthogonal \(Q\)</td><td>\(Q^TQ = I\), so \(Q^{-1}=Q^T\)</td><td>Preserves lengths and angles (rotation)</td></tr>
+          <tr><td>Positive Definite</td><td>\(\mathbf{x}^TA\mathbf{x} > 0\; \forall \mathbf{x}\neq\mathbf{0}\)</td><td>All eigenvalues \(> 0\)</td></tr>
+          <tr><td>Projection \(P\)</td><td>\(P = P^T = P^2\)</td><td>Projects onto a subspace</td></tr>
+          <tr><td>Triangular \(L, U\)</td><td>All entries above/below diagonal are 0</td><td>LU factorization; fast to solve</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="box note">
+        <div class="box-label">📝 Why Symmetric Matrices Dominate Deep Learning</div>
+        <p>Covariance matrices \(\Sigma = \frac{1}{m}X^TX\) are always symmetric (and PSD). Gram matrices \(G = XX^T\) are symmetric. Hessians \(H = \nabla^2 \mathcal{L}\) of loss functions are symmetric. The reason symmetric matrices are so special: they always have real eigenvalues and orthogonal eigenvectors — the <strong>Spectral Theorem</strong> (Module 06).</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2.2 Matrix multiply -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-red">2.2</div>
+      <div class="subsection-title">Matrix Multiplication — Four Interpretations</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <p>Matrix multiplication \(C = AB\) where \(A \in \mathbb{R}^{m\times k}\), \(B \in \mathbb{R}^{k\times n}\) gives \(C \in \mathbb{R}^{m \times n}\). There are four equivalent ways to see it — each illuminating in different contexts.</p>
+
+      <div class="card-grid">
+        <div class="card card-blue">
+          <h4>Row-Column (Standard)</h4>
+          <p>\(C_{ij} = \sum_{r=1}^k A_{ir} B_{rj}\) = dot product of row \(i\) of \(A\) with column \(j\) of \(B\). Complexity: \(O(mnk)\).</p>
+        </div>
+        <div class="card card-red">
+          <h4>Column View</h4>
+          <p>Each column of \(C\) is \(A\) times the corresponding column of \(B\): column \(j\) of \(C\) = \(A\) × (column \(j\) of \(B\)). Think: \(C\) applies \(A\) to each column of \(B\).</p>
+        </div>
+        <div class="card card-green">
+          <h4>Row View</h4>
+          <p>Each row of \(C\) is the corresponding row of \(A\) times \(B\). Think: row \(i\) of \(C\) = (row \(i\) of \(A\)) × \(B\).</p>
+        </div>
+        <div class="card card-amber">
+          <h4>Sum of Rank-1 Matrices</h4>
+          <p>\(AB = \sum_{r=1}^k (\text{col}_r A)(\text{row}_r B)\). Expresses \(AB\) as a sum of \(k\) outer products. Critical for understanding SVD.</p>
+        </div>
+      </div>
+
+      <div class="box warn">
+        <div class="box-label">⚠️ Non-Commutativity</div>
+        <p>Matrix multiplication is <strong>not commutative</strong>: \(AB \neq BA\) in general. The order of transformations matters. In deep learning, the order of layers matters. Backpropagation uses the chain rule with transposes: \(\frac{\partial \mathcal{L}}{\partial W} = \frac{\partial \mathcal{L}}{\partial y} \cdot x^T\), and the order matters for shapes to work out.</p>
+      </div>
+
+      <h4>Key Rules</h4>
+      <div class="math-block"><span class="c">-- Transpose rules (used constantly in backprop) --</span>
+(AB)ᵀ = BᵀAᵀ          <span class="c">-- Order reverses!</span>
+(ABC)ᵀ = CᵀBᵀAᵀ
+(A + B)ᵀ = Aᵀ + Bᵀ
+
+<span class="c">-- Inverse rules --</span>
+(AB)⁻¹ = B⁻¹A⁻¹       <span class="c">-- Order reverses!</span>
+(Aᵀ)⁻¹ = (A⁻¹)ᵀ
+
+<span class="c">-- For orthogonal Q: Q⁻¹ = Qᵀ  (cheapest inverse possible) --</span></div>
+    </div>
+  </div>
+
+  <!-- 2.3 Geometric view -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-green">2.3</div>
+      <div class="subsection-title">Geometric View of Matrix-Vector Products</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <p>When \(A\) multiplies \(\mathbf{x}\), it transforms the vector geometrically. In general, both direction and length change. The <strong>eigenvectors</strong> (Module 04) are the special vectors whose direction does NOT change — they only scale.</p>
+
+      <div class="box example">
+        <div class="box-label">📋 Worked Example — What A Does to the Plane</div>
+        <p>For \(A = \begin{bmatrix}1&2\\2&1\end{bmatrix}\):</p>
+        <div class="math-block"><span class="c">-- A general vector gets both rotated AND scaled: --</span>
+A[1,3]ᵀ = [7,5]ᵀ    <span class="c">-- direction changed completely</span>
+
+<span class="c">-- But eigenvectors only scale: --</span>
+A[1,1]ᵀ = [3,3]ᵀ = 3·[1,1]ᵀ    <span class="hl">λ₁=3: stretched by 3 along diagonal</span>
+A[-1,1]ᵀ = [1,-1]ᵀ = -1·[-1,1]ᵀ  <span class="hl">λ₂=-1: flipped (reflected) along anti-diag</span></div>
+      </div>
+
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Transformation</th><th>Matrix Example</th><th>Effect</th></tr></thead>
+        <tbody>
+          <tr><td>Scale uniformly</td><td>\(cI\)</td><td>All vectors stretched/shrunk by \(c\)</td></tr>
+          <tr><td>Scale axes</td><td>\(\text{diag}(\lambda_1,\lambda_2)\)</td><td>Each axis scaled independently</td></tr>
+          <tr><td>Rotate by \(\theta\)</td><td>\(\begin{bmatrix}\cos\theta&-\sin\theta\\\sin\theta&\cos\theta\end{bmatrix}\)</td><td>Lengths preserved, angles rotate</td></tr>
+          <tr><td>Shear</td><td>\(\begin{bmatrix}1&s\\0&1\end{bmatrix}\)</td><td>One axis slides along the other</td></tr>
+          <tr><td>Reflect</td><td>\(\begin{bmatrix}-1&0\\0&1\end{bmatrix}\)</td><td>Flip across an axis</td></tr>
+          <tr><td>Project to line</td><td>\(\mathbf{u}\mathbf{u}^T\)</td><td>All vectors collapse onto line through \(\mathbf{u}\)</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- 2.4 Rank and determinant -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-amber">2.4</div>
+      <div class="subsection-title">Rank, Determinant & Invertibility</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="box def">
+        <div class="box-label">📐 Definition — Rank</div>
+        <p>The <strong>rank</strong> of a matrix \(A\) is the dimension of its column space (= dimension of its row space). Equivalently, it's the number of linearly independent columns (or rows). For \(A \in \mathbb{R}^{m\times n}\), \(\text{rank}(A) \leq \min(m, n)\).</p>
+      </div>
+
+      <div class="card-grid">
+        <div class="card card-red">
+          <h4>Full Rank</h4>
+          <p>\(\text{rank}(A) = \min(m,n)\). The matrix doesn't "lose information" — every output dimension is reachable. An invertible square matrix has full rank.</p>
+        </div>
+        <div class="card card-amber">
+          <h4>Rank Deficient</h4>
+          <p>\(\text{rank}(A) < \min(m,n)\). Some input dimensions map to zero. The null space is nontrivial. The matrix "squashes" the input into a lower-dimensional subspace.</p>
+        </div>
+      </div>
+
+      <div class="box def">
+        <div class="box-label">📐 Definition — Determinant</div>
+        <p>For a square matrix \(A\), the <strong>determinant</strong> \(\det(A)\) measures the signed volume scaling factor of the transformation. Key facts:</p>
+        <ul>
+          <li>\(\det(AB) = \det(A)\det(B)\)</li>
+          <li>\(\det(A^T) = \det(A)\)</li>
+          <li>\(\det(A) = 0\) iff \(A\) is singular (rank-deficient)</li>
+          <li>For a 2×2: \(\det\begin{bmatrix}a&b\\c&d\end{bmatrix} = ad - bc\)</li>
+          <li>\(\det(A) = \prod_i \lambda_i\) (product of eigenvalues!)</li>
+        </ul>
+      </div>
+
+      <div class="box insight">
+        <div class="box-label">🧠 Rank in Deep Learning — Expressivity</div>
+        <p>A weight matrix with rank \(r\) can only map inputs to an \(r\)-dimensional subspace, regardless of the input dimension. If \(r \ll n\), the layer is a bottleneck. LoRA (Low-Rank Adaptation) deliberately constrains weight updates to be rank-\(r\) matrices, dramatically reducing trainable parameters while preserving most of the model's capability.</p>
+      </div>
+
+      <!-- Interactive 2x2 calculator -->
+      <div class="interactive">
+        <div class="interactive-title"><span class="int-badge">INTERACTIVE</span> 2×2 Matrix Explorer</div>
+        <p style="font-size:.85rem;color:var(--muted);margin-bottom:14px">Enter a 2×2 matrix to compute rank, determinant, trace, and inverse.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:260px">
+          <div><span class="int-label">a₁₁</span><input type="number" class="int-input" id="ma" value="1"></div>
+          <div><span class="int-label">a₁₂</span><input type="number" class="int-input" id="mb" value="2"></div>
+          <div><span class="int-label">a₂₁</span><input type="number" class="int-input" id="mc" value="2"></div>
+          <div><span class="int-label">a₂₂</span><input type="number" class="int-input" id="md" value="1"></div>
+        </div>
+        <button class="int-btn" onclick="calcMatrix()" style="margin-top:10px">Analyze Matrix →</button>
+        <div class="int-out" id="matrix-out">Enter a matrix and press Analyze.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2.5 LU and matrix factorizations -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-dark">2.5</div>
+      <div class="subsection-title">Matrix Factorizations Overview <span class="strang">Strang §1.5</span></div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <p>One of the great themes of linear algebra is <em>factoring</em> a matrix into simpler pieces. Different factorizations expose different structure.</p>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Factorization</th><th>Formula</th><th>When</th><th>Used For</th></tr></thead>
+        <tbody>
+          <tr><td>LU</td><td>\(A = LU\)</td><td>Any invertible \(A\)</td><td>Solving \(Ax=b\); \(O(n^3)\) once, then \(O(n^2)\)</td></tr>
+          <tr><td>QR</td><td>\(A = QR\)</td><td>Any \(A\)</td><td>Orthogonal basis; least squares; Gram-Schmidt</td></tr>
+          <tr><td>Cholesky</td><td>\(A = LL^T\)</td><td>SPD matrices</td><td>Solving normal equations; covariance sampling</td></tr>
+          <tr><td>EVD</td><td>\(A = U\Lambda U^{-1}\)</td><td>Diagonalizable square</td><td>Powers, exponentials, Markov chains</td></tr>
+          <tr><td>Spectral</td><td>\(A = Q\Lambda Q^T\)</td><td>Symmetric</td><td>PCA, quadratic forms</td></tr>
+          <tr><td>SVD</td><td>\(A = U\Sigma V^T\)</td><td>Any \(A\)</td><td>Dimensionality reduction, LoRA, pseudoinverse</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+</div><!-- end m2 -->
+
+
+<!-- ═══ MODULE 3: VECTOR SPACES ═══ -->
+<div id="m3" class="module">
+  <div class="module-eyebrow">Module 03</div>
+  <h1 class="module-title">Vector Spaces, Bases & Subspaces</h1>
+  <p class="module-subtitle">The geometric arena — what "space" a matrix operates in</p>
+  <div class="module-rule"></div>
+
+  <!-- 3.1 Vector spaces -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-blue">3.1</div>
+      <div class="subsection-title">Vector Spaces — What Makes a Space</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="box def">
+        <div class="box-label">📐 Definition — Vector Space</div>
+        <p>A <strong>vector space</strong> over \(\mathbb{R}\) is a set \(V\) with two operations (addition, scalar multiplication) satisfying 8 axioms. The most important ones for intuition:</p>
+        <ul>
+          <li>\(\mathbf{u} + \mathbf{v} \in V\) (closed under addition)</li>
+          <li>\(c\mathbf{v} \in V\) (closed under scalar multiplication)</li>
+          <li>The zero vector \(\mathbf{0} \in V\)</li>
+        </ul>
+        <p>Key: \(\mathbb{R}^n\) is the archetypal vector space. But function spaces, polynomial spaces, etc. are also vector spaces.</p>
+      </div>
+
+      <div class="box def">
+        <div class="box-label">📐 Definition — Subspace</div>
+        <p>A <strong>subspace</strong> of \(\mathbb{R}^n\) is a subset \(S \subseteq \mathbb{R}^n\) that is itself a vector space — it must contain \(\mathbf{0}\), be closed under addition, and be closed under scalar multiplication.</p>
+        <p>Examples: a line through the origin, a plane through the origin, all of \(\mathbb{R}^n\), just \{\mathbf{0}\}.</p>
+      </div>
+
+      <div class="box warn">
+        <div class="box-label">⚠️ A Subspace Must Contain the Origin</div>
+        <p>The set of all vectors with \(x_1 + x_2 = 1\) is <em>NOT</em> a subspace — it doesn't contain \(\mathbf{0}\). The set with \(x_1 + x_2 = 0\) IS a subspace. This distinction matters when thinking about affine transforms (neural network layers with bias: \(y = Wx + b\) is an affine map, not a linear map unless \(b = 0\)).</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3.2 Four fundamental subspaces -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-red">3.2</div>
+      <div class="subsection-title">The Four Fundamental Subspaces <span class="strang">Strang §3</span></div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <p>Every matrix \(A \in \mathbb{R}^{m\times n}\) with rank \(r\) defines four fundamental subspaces. Together they tell you everything about what \(Ax = b\) can and cannot do.</p>
+
+      <div class="card-grid">
+        <div class="card card-blue">
+          <h4>Column Space \(C(A)\)</h4>
+          <p><em>All possible outputs</em>: \(\{A\mathbf{x} : \mathbf{x} \in \mathbb{R}^n\}\). Lives in \(\mathbb{R}^m\). Dimension = \(r\). The equation \(A\mathbf{x}=\mathbf{b}\) has a solution iff \(\mathbf{b} \in C(A)\).</p>
+        </div>
+        <div class="card card-red">
+          <h4>Null Space \(N(A)\)</h4>
+          <p><em>All inputs that produce zero output</em>: \(\{\mathbf{x}: A\mathbf{x}=\mathbf{0}\}\). Lives in \(\mathbb{R}^n\). Dimension = \(n-r\). Orthogonal complement of the row space.</p>
+        </div>
+        <div class="card card-green">
+          <h4>Row Space \(C(A^T)\)</h4>
+          <p><em>Directions that survive the transform</em>. Lives in \(\mathbb{R}^n\). Dimension = \(r\). Orthogonal complement of the null space. Every \(\mathbf{x}\) = (row space part) + (null space part).</p>
+        </div>
+        <div class="card card-amber">
+          <h4>Left Null Space \(N(A^T)\)</h4>
+          <p><em>All outputs that can't be reached</em>: \(\{\mathbf{y}: A^T\mathbf{y}=\mathbf{0}\}\). Lives in \(\mathbb{R}^m\). Dimension = \(m-r\). Orthogonal complement of column space.</p>
+        </div>
+      </div>
+
+      <div class="box thm">
+        <div class="box-label">🏛 Rank-Nullity Theorem</div>
+        \[\text{rank}(A) + \text{nullity}(A) = n\]
+        <p style="margin-top:8px">where nullity = \(\dim N(A) = n - r\). Every input vector decomposes uniquely into a row-space component (which produces output) and a null-space component (which vanishes).</p>
+      </div>
+
+      <div class="box thm">
+        <div class="box-label">🏛 Fundamental Theorem of Linear Algebra (Strang)</div>
+        <p>The row space and null space are <strong>orthogonal complements</strong> in \(\mathbb{R}^n\). The column space and left null space are <strong>orthogonal complements</strong> in \(\mathbb{R}^m\):</p>
+        \[C(A^T) \perp N(A) \quad \text{in } \mathbb{R}^n\]
+        \[C(A) \perp N(A^T) \quad \text{in } \mathbb{R}^m\]
+      </div>
+
+      <div class="box insight">
+        <div class="box-label">🧠 Subspaces in Neural Networks</div>
+        <p>A weight matrix \(W \in \mathbb{R}^{d_{out}\times d_{in}}\) with rank \(r < d_{in}\) has a nontrivial null space of dimension \(d_{in}-r\). Any input in that null space produces zero output from that layer — it's <em>invisible</em> to the network. This is why rank matters for expressivity. If \(W\) has rank 10 but \(d_{in} = 512\), then 502 directions in input space are completely ignored by that layer.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3.3 Linear independence, basis, dimension -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-green">3.3</div>
+      <div class="subsection-title">Linear Independence, Basis & Dimension</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="box def">
+        <div class="box-label">📐 Definition — Linear Independence</div>
+        <p>Vectors \(\mathbf{v}_1, \ldots, \mathbf{v}_k\) are <strong>linearly independent</strong> if the only solution to:</p>
+        \[c_1\mathbf{v}_1 + c_2\mathbf{v}_2 + \cdots + c_k\mathbf{v}_k = \mathbf{0}\]
+        <p>is \(c_1 = c_2 = \cdots = c_k = 0\). Otherwise, they're linearly <em>dependent</em> — at least one is redundant.</p>
+      </div>
+
+      <div class="box def">
+        <div class="box-label">📐 Definition — Basis</div>
+        <p>A <strong>basis</strong> for a vector space \(V\) is a set of vectors that is both (1) linearly independent and (2) spans \(V\). Every vector in \(V\) has a unique representation as a linear combination of basis vectors. The number of basis vectors = \(\dim(V)\).</p>
+      </div>
+
+      <div class="box def">
+        <div class="box-label">📐 Definition — Orthonormal Basis</div>
+        <p>A basis \(\{\mathbf{u}_1, \ldots, \mathbf{u}_n\}\) is <strong>orthonormal</strong> if \(\mathbf{u}_i^T\mathbf{u}_j = \delta_{ij}\) (0 if \(i\neq j\), 1 if \(i=j\)). Finding coordinates in an orthonormal basis is trivial:</p>
+        \[\mathbf{z} = \sum_{i=1}^n (\mathbf{u}_i^T\mathbf{z})\,\mathbf{u}_i \qquad \text{(just take dot products!)}\]
+      </div>
+
+      <p>This is the key advantage of orthonormal bases. For a general basis, finding coordinates requires solving a linear system — \(O(n^3)\). For an orthonormal basis, each coordinate is just a dot product — \(O(n)\) each, \(O(n^2)\) total. Eigenvectors of symmetric matrices always form orthonormal bases (Spectral Theorem), which is why they're the perfect basis choice.</p>
+
+      <div class="box example">
+        <div class="box-label">📋 Change of Basis Example</div>
+        <p>Suppose the eigenvectors of \(A = \begin{bmatrix}1&2\\2&1\end{bmatrix}\) are \(\mathbf{u}_1 = \frac{1}{\sqrt{2}}[1,1]^T\) and \(\mathbf{u}_2 = \frac{1}{\sqrt{2}}[-1,1]^T\).</p>
+        <p>Any vector \(\mathbf{z} = [a,b]^T\) in the eigenbasis:</p>
+        \[\alpha_1 = \mathbf{u}_1^T\mathbf{z} = \frac{a+b}{\sqrt{2}}, \qquad \alpha_2 = \mathbf{u}_2^T\mathbf{z} = \frac{-a+b}{\sqrt{2}}\]
+        <p>Then \(A\mathbf{z} = \lambda_1\alpha_1\mathbf{u}_1 + \lambda_2\alpha_2\mathbf{u}_2 = 3\alpha_1\mathbf{u}_1 + (-1)\alpha_2\mathbf{u}_2\). Matrix multiplication becomes scalar multiplication in the eigenbasis!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3.4 Markov chains & steady states -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-violet">3.4</div>
+      <div class="subsection-title">Markov Chains & Steady States — A DL Motivation</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <p>This is where the lecture (Slides 6–10) motivates eigenvalues beautifully. Consider two restaurants — Chinese and Mexican — where students switch between them each day with probabilities \(p\) and \(q\).</p>
+
+      <div class="box def">
+        <div class="box-label">📐 Setup — Markov Transition Matrix</div>
+        \[\mathbf{v}_{(t+1)} = M\,\mathbf{v}_{(t)}, \quad M = \begin{bmatrix}1-p & q \\ p & 1-q\end{bmatrix}\]
+        <p style="margin-top:8px">The sequence \(\mathbf{v}_{(0)}, M\mathbf{v}_{(0)}, M^2\mathbf{v}_{(0)}, \ldots\) — does it converge?</p>
+      </div>
+
+      <p>Yes! After enough steps, \(M^n\mathbf{v}_{(0)} \to k\,\mathbf{e}_d\) where \(\mathbf{e}_d\) is the <strong>dominant eigenvector</strong> of \(M\) (eigenvalue 1). This is the <strong>steady state</strong>. The key insight from the lecture (Slide 10):</p>
+
+      <div class="math-block"><span class="c">-- Sequence behaviour depends ENTIRELY on dominant eigenvalue λ_d: --</span>
+|λ_d| &gt; 1  →  sequence EXPLODES (diverges)
+|λ_d| &lt; 1  →  sequence VANISHES (collapses to 0)
+|λ_d| = 1  →  sequence CONVERGES to steady state
+
+<span class="hl">This is exactly the vanishing/exploding gradient problem in RNNs!</span>
+<span class="c">-- In an RNN: h_t = tanh(Wh_{t-1} + Ux_t) --</span>
+<span class="c">-- Gradients flow back as products of W, controlled by its eigenvalues --</span></div>
+
+      <div class="box insight">
+        <div class="box-label">🧠 RNNs and Eigenvalue Control</div>
+        <p>In a vanilla RNN, the gradient of the loss w.r.t. the hidden state at time \(t=0\) involves \(W^T\) multiplied many times. If \(|\lambda_{\max}(W)| > 1\), gradients explode. If \(< 1\), they vanish. This is why LSTMs and GRUs use gating mechanisms — they adaptively control the effective eigenvalue, keeping it near 1 when needed.</p>
+      </div>
+    </div>
+  </div>
+</div><!-- end m3 -->
+
+
+<!-- ═══ MODULE 4: EIGENVALUES ═══ -->
+<div id="m4" class="module">
+  <div class="module-eyebrow">Module 04</div>
+  <h1 class="module-title">Eigenvalues & Eigenvectors</h1>
+  <p class="module-subtitle">The special vectors that refuse to stray from their path under transformation</p>
+  <div class="module-rule"></div>
+
+  <!-- 4.1 Core definition -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-blue">4.1</div>
+      <div class="subsection-title">Core Definition & Geometric Intuition</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="box def">
+        <div class="box-label">📐 Definition — Eigenvector & Eigenvalue</div>
+        <p>For square matrix \(A \in \mathbb{R}^{n\times n}\), a nonzero vector \(\mathbf{x}\) is an <strong>eigenvector</strong> with <strong>eigenvalue</strong> \(\lambda\) if:</p>
+        \[A\mathbf{x} = \lambda\mathbf{x}\]
+        <p>The direction of \(\mathbf{x}\) is unchanged by \(A\). Only the magnitude changes — scaled by \(\lambda\).</p>
+      </div>
+
+      <p>Why are these special? For any other vector, matrix multiplication changes <em>both</em> direction and length. Eigenvectors are the coordinate axes where \(A\) acts diagonally. They're the "natural coordinate system" of the transformation.</p>
+
+      <div class="box example">
+        <div class="box-label">📋 Concrete Example — IIT Lecture Slide 4</div>
+        <p>For \(A = \begin{bmatrix}1&2\\2&1\end{bmatrix}\):</p>
+        <div class="math-block"><span class="c">-- Random vector: direction changes --</span>
+A·[1,3]ᵀ = [7,5]ᵀ    ← completely different direction
+
+<span class="c">-- Eigenvector: only scales --</span>
+A·[1,1]ᵀ = [3,3]ᵀ = 3·[1,1]ᵀ   ← λ₁=3, scaled along diagonal
+A·[-1,1]ᵀ = [1,-1]ᵀ = -1·[-1,1]ᵀ  ← λ₂=-1, reflected along anti-diagonal</div>
+        <p>The eigenvectors point along the <em>axes of the transformation</em>. One direction is stretched by 3, the other is reflected.</p>
+      </div>
+
+      <div class="callout-row">
+        <div class="callout"><div class="callout-n">\(\lambda > 1\)</div><div class="callout-l">Stretched in that direction</div></div>
+        <div class="callout"><div class="callout-n">\(0 < \lambda < 1\)</div><div class="callout-l">Compressed toward origin</div></div>
+        <div class="callout"><div class="callout-n">\(\lambda < 0\)</div><div class="callout-l">Reflected + scaled</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4.2 Finding eigenvalues -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-red">4.2</div>
+      <div class="subsection-title">How to Find Eigenvalues — The Characteristic Polynomial</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <p>The equation \(A\mathbf{x} = \lambda\mathbf{x}\) can be rewritten as \((A - \lambda I)\mathbf{x} = \mathbf{0}\). For a nonzero solution to exist, the matrix \((A - \lambda I)\) must be <em>singular</em>. Singular means determinant = 0.</p>
+
+      <div class="box def">
+        <div class="box-label">📐 The Characteristic Equation</div>
+        \[\det(A - \lambda I) = 0\]
+        <p>This is a polynomial of degree \(n\) in \(\lambda\). Its roots are the eigenvalues. For an \(n\times n\) matrix, there are always exactly \(n\) eigenvalues (counting multiplicity, allowing complex values).</p>
+      </div>
+
+      <div class="steps">
+        <div class="step"><div class="step-badge">1</div><div class="step-body"><h5>Compute \(\det(A - \lambda I) = 0\)</h5><p>This gives the characteristic polynomial. For 2×2: \(\lambda^2 - \text{tr}(A)\lambda + \det(A) = 0\). Use the quadratic formula.</p></div></div>
+        <div class="step"><div class="step-badge">2</div><div class="step-body"><h5>Solve for \(\lambda\)</h5><p>The roots are the eigenvalues. A degree-\(n\) polynomial has \(n\) roots (possibly repeated, possibly complex).</p></div></div>
+        <div class="step"><div class="step-badge">3</div><div class="step-body"><h5>For each \(\lambda_i\), find \(\text{null}(A - \lambda_i I)\)</h5><p>Solve \((A-\lambda_i I)\mathbf{x} = \mathbf{0}\) by row reduction. The null space gives the eigenvectors for \(\lambda_i\).</p></div></div>
+      </div>
+
+      <div class="box example">
+        <div class="box-label">📋 Full Worked Example</div>
+        <div class="math-block"><span class="lbl">-- A = [[1,2],[2,1]] --</span>
+
+Step 1: det(A - λI) = det([[1-λ, 2],[2, 1-λ]])
+                     = (1-λ)² - 4
+                     = λ² - 2λ - 3
+                     = (λ-3)(λ+1) = 0
+
+Step 2: λ₁ = 3,  λ₂ = -1
+
+Step 3a: For λ₁=3:  (A-3I)x = [[−2,2],[2,−2]]x = 0
+          → x₁ = x₂  →  eigenvector: [1,1]ᵀ (or any multiple)
+          Normalize: u₁ = [1,1]ᵀ/√2
+
+Step 3b: For λ₂=-1: (A+I)x = [[2,2],[2,2]]x = 0
+          → x₁ = -x₂  →  eigenvector: [-1,1]ᵀ
+          Normalize: u₂ = [-1,1]ᵀ/√2
+
+<span class="hl">Verify: trace(A) = 2 = λ₁+λ₂ = 3+(-1) ✓</span>
+<span class="hl">Verify: det(A) = -3 = λ₁·λ₂ = 3·(-1) ✓</span></div>
+      </div>
+
+      <div class="box thm">
+        <div class="box-label">🏛 Trace-Determinant Relations</div>
+        <p>For any \(n \times n\) matrix:</p>
+        \[\text{tr}(A) = \sum_{i=1}^n \lambda_i \qquad \det(A) = \prod_{i=1}^n \lambda_i\]
+        <p>For 2×2: \(\lambda = \frac{\text{tr}(A) \pm \sqrt{\text{tr}(A)^2 - 4\det(A)}}{2}\)</p>
+      </div>
+
+      <!-- Interactive Eigenvalue Calculator -->
+      <div class="interactive">
+        <div class="interactive-title"><span class="int-badge">INTERACTIVE</span> Eigenvalue Calculator (2×2)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:260px">
+          <div><span class="int-label">a₁₁</span><input type="number" class="int-input" id="e11" value="1"></div>
+          <div><span class="int-label">a₁₂</span><input type="number" class="int-input" id="e12" value="2"></div>
+          <div><span class="int-label">a₂₁</span><input type="number" class="int-input" id="e21" value="2"></div>
+          <div><span class="int-label">a₂₂</span><input type="number" class="int-input" id="e22" value="1"></div>
+        </div>
+        <button class="int-btn" onclick="calcEigen()" style="margin-top:10px">Compute Eigenvalues & Vectors →</button>
+        <div class="int-out" id="eigen-out">Enter a matrix and press Compute.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4.3 Properties -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-green">4.3</div>
+      <div class="subsection-title">Key Properties of Eigenvalues</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Matrix</th><th>Eigenvalue Property</th><th>Proof Idea</th></tr></thead>
+        <tbody>
+          <tr><td>Triangular</td><td>Eigenvalues are on the diagonal</td><td>\(\det(A-\lambda I)\) factors along diagonal</td></tr>
+          <tr><td>Symmetric (\(A=A^T\))</td><td>All eigenvalues are real</td><td>Suppose \(\lambda\) complex; use \(\bar{\lambda}\)</td></tr>
+          <tr><td>PSD (\(\mathbf{x}^TA\mathbf{x}\geq 0\))</td><td>All eigenvalues \(\geq 0\)</td><td>Set \(\mathbf{x}\) = eigenvector in definition</td></tr>
+          <tr><td>Orthogonal (\(Q^TQ=I\))</td><td>All \(|\lambda_i|=1\)</td><td>Orthogonal maps preserve lengths</td></tr>
+          <tr><td>\(A^k\)</td><td>Eigenvalues are \(\lambda_i^k\)</td><td>\(A^k\mathbf{x} = A^{k-1}\lambda\mathbf{x} = \ldots = \lambda^k\mathbf{x}\)</td></tr>
+          <tr><td>\(A^{-1}\)</td><td>Eigenvalues are \(1/\lambda_i\)</td><td>Multiply \(A\mathbf{x}=\lambda\mathbf{x}\) by \(A^{-1}/\lambda\)</td></tr>
+          <tr><td>\(cA\)</td><td>Eigenvalues are \(c\lambda_i\)</td><td>Direct from definition</td></tr>
+          <tr><td>\(A + cI\)</td><td>Eigenvalues are \(\lambda_i + c\)</td><td>\((A+cI)\mathbf{x} = \lambda\mathbf{x}+c\mathbf{x}\)</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="box insight">
+        <div class="box-label">🧠 Dominant Eigenvalue — Lecture 6 Slide 8</div>
+        <p>The <strong>dominant eigenvalue</strong> \(\lambda_d\) is the one with the largest absolute value: \(|\lambda_d| \geq |\lambda_i|\) for all \(i\). When you repeatedly apply \(A\) to any vector, the component along the dominant eigenvector grows the fastest (or shrinks the slowest). After many applications, almost any initial vector aligns with the dominant eigenvector.</p>
+        <p>This is the <strong>Power Iteration</strong> algorithm for finding the largest eigenvalue: keep multiplying by \(A\) and normalizing. PageRank uses this — the dominant eigenvector of the web link matrix gives each page's importance score.</p>
+      </div>
+
+      <!-- Quiz -->
+      <div class="quiz">
+        <div class="quiz-tag">✦ Check Your Understanding</div>
+        <div class="quiz-q">Matrix \(A\) has eigenvalue \(\lambda = 3\). What is the eigenvalue of \(A^5\) for the same eigenvector?</div>
+        <div class="quiz-opts">
+          <div class="quiz-opt" onclick="chk(this,false,'q2')"><span class="quiz-opt-key">A</span>\(15\) (multiply by 5)</div>
+          <div class="quiz-opt" onclick="chk(this,true,'q2')"><span class="quiz-opt-key">B</span>\(3^5 = 243\) (raise to power 5)</div>
+          <div class="quiz-opt" onclick="chk(this,false,'q2')"><span class="quiz-opt-key">C</span>\(3\) (unchanged)</div>
+          <div class="quiz-opt" onclick="chk(this,false,'q2')"><span class="quiz-opt-key">D</span>\(\sqrt{3}\) (take square root)</div>
+        </div>
+        <div class="quiz-fb" id="q2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4.4 Geometric multiplicity -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-amber">4.4</div>
+      <div class="subsection-title">Algebraic vs. Geometric Multiplicity</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="box def">
+        <div class="box-label">📐 Two Kinds of Multiplicity</div>
+        <p><strong>Algebraic multiplicity</strong> of \(\lambda_i\): the number of times \(\lambda_i\) appears as a root of \(\det(A-\lambda I)=0\).</p>
+        <p><strong>Geometric multiplicity</strong> of \(\lambda_i\): the dimension of the null space of \((A - \lambda_i I)\) = number of linearly independent eigenvectors for \(\lambda_i\).</p>
+        <p>Always: geometric multiplicity ≤ algebraic multiplicity.</p>
+      </div>
+
+      <p>When geometric multiplicity < algebraic multiplicity for some eigenvalue, the matrix is <strong>not fully diagonalizable</strong> (it requires a Jordan form). For symmetric matrices, these are always equal — another reason symmetric matrices are so tractable.</p>
+
+      <div class="box example">
+        <div class="box-label">📋 Example — Non-Diagonalizable Matrix</div>
+        <div class="math-block">A = [[2, 1],    Characteristic poly: (2-λ)² = 0
+      [0, 2]]    So λ = 2 with algebraic multiplicity 2.
+
+(A - 2I) = [[0,1],[0,0]]
+Null space: x₂ = 0, x₁ free → only [1,0]ᵀ is an eigenvector
+Geometric multiplicity = 1 &lt; 2 = algebraic multiplicity
+
+This matrix cannot be diagonalized! (It's in Jordan form already.)</div>
+      </div>
+    </div>
+  </div>
+</div><!-- end m4 -->
+
+
+<!-- ═══ MODULE 5: EVD ═══ -->
+<div id="m5" class="module">
+  <div class="module-eyebrow">Module 05</div>
+  <h1 class="module-title">Eigenvalue Decomposition (EVD)</h1>
+  <p class="module-subtitle">Factoring a matrix into its eigenstructure — the master decomposition for square matrices</p>
+  <div class="module-rule"></div>
+
+  <!-- 5.1 Derivation -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-blue">5.1</div>
+      <div class="subsection-title">Derivation of EVD from First Principles</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <p>The central idea: pack all the eigenvectors as columns of a matrix, and watch what happens when \(A\) multiplies it.</p>
+
+      <div class="math-block"><span class="lbl">-- Let u₁,...,uₙ be eigenvectors with eigenvalues λ₁,...,λₙ --</span>
+<span class="lbl">-- Build the matrix U = [u₁ | u₂ | ... | uₙ] --</span>
+
+AU = A[u₁ | u₂ | ... | uₙ]
+   = [Au₁ | Au₂ | ... | Auₙ]      ← apply A to each column
+   = [λ₁u₁ | λ₂u₂ | ... | λₙuₙ]  ← eigenvector definition
+
+   = [u₁|u₂|...|uₙ] · diag(λ₁,...,λₙ)   ← factor out
+
+AU = UΛ    where Λ = diag(λ₁,...,λₙ)
+
+<span class="hl">If U is invertible: A = UΛU⁻¹   [Eigenvalue Decomposition]</span>
+<span class="c">-- Or equivalently: U⁻¹AU = Λ   [Diagonalization of A] --</span></div>
+
+      <div class="box def">
+        <div class="box-label">📐 Eigenvalue Decomposition (EVD)</div>
+        \[A = U\Lambda U^{-1}\]
+        <ul style="margin-top:10px">
+          <li>\(U\): matrix whose <em>columns</em> are the eigenvectors of \(A\)</li>
+          <li>\(\Lambda = \text{diag}(\lambda_1, \ldots, \lambda_n)\): diagonal matrix of eigenvalues</li>
+          <li>Exists when \(A\) has \(n\) linearly independent eigenvectors</li>
+        </ul>
+      </div>
+
+      <div class="box thm">
+        <div class="box-label">🏛 When Does EVD Exist?</div>
+        <p><strong>Sufficient condition:</strong> If \(A\) has \(n\) distinct eigenvalues, it has \(n\) linearly independent eigenvectors → EVD exists.<br>
+        <strong>Always:</strong> If \(A\) is symmetric (even with repeated eigenvalues), EVD exists with orthogonal \(U\) (Spectral Theorem).</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5.2 Power of diagonalization -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-red">5.2</div>
+      <div class="subsection-title">Powers, Functions of Matrices & Eigenbasis Simplification</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <h4>Computing Matrix Powers</h4>
+      <div class="math-block">A^k = (UΛU⁻¹)^k = (UΛU⁻¹)(UΛU⁻¹)···(UΛU⁻¹)
+           = U Λ (U⁻¹U) Λ (U⁻¹U) ··· Λ U⁻¹
+<span class="hl">           = U Λ^k U⁻¹</span>
+
+<span class="c">-- Λ^k is trivial: diag(λ₁^k, λ₂^k, ..., λₙ^k) --</span></div>
+
+      <p>This turns an \(O(n^3)\) matrix multiply (done \(k\) times = \(O(kn^3)\)) into a single factorization (\(O(n^3)\) once) + cheap power computations (\(O(n)\)).</p>
+
+      <div class="box insight">
+        <div class="box-label">🧠 Eigenbasis Reduces Matrix Multiply to Scalar Multiply</div>
+        <p>This is the deepest insight of Module 5, from Lecture 6 Slides 62–63:</p>
+        <p>If you express \(\mathbf{x} = \sum_i \alpha_i \mathbf{u}_i\) in the eigenbasis, then:</p>
+        \[A\mathbf{x} = \sum_{i=1}^n \alpha_i A\mathbf{u}_i = \sum_{i=1}^n \alpha_i \lambda_i \mathbf{u}_i\]
+        <p>Instead of the expensive matrix-vector product \(A\mathbf{x}\), you just multiply each coordinate \(\alpha_i\) by the scalar \(\lambda_i\)! The eigenvalue is the "speed" at which component \(i\) grows under repeated application of \(A\).</p>
+      </div>
+
+      <div class="box example">
+        <div class="box-label">📋 Using EVD to Compute A¹⁰</div>
+        <div class="math-block">A = [[1,2],[2,1]], EVD: λ₁=3, u₁=[1,1]ᵀ/√2; λ₂=-1, u₂=[-1,1]ᵀ/√2
+
+A^10 = U diag(3^10, (-1)^10) U⁻¹
+     = U diag(59049, 1) U⁻¹
+
+<span class="c">-- Without EVD: 10 matrix multiplications, each O(n²) --</span>
+<span class="c">-- With EVD: just raise 3 and -1 to the 10th power --</span></div>
+      </div>
+
+      <h4>Matrix Exponential \(e^{At}\)</h4>
+      <p>Used in differential equations \(\frac{d\mathbf{u}}{dt} = A\mathbf{u}\). The solution is \(\mathbf{u}(t) = e^{At}\mathbf{u}(0)\), where \(e^{At} = U e^{\Lambda t} U^{-1}\) and \(e^{\Lambda t} = \text{diag}(e^{\lambda_1 t}, \ldots, e^{\lambda_n t})\).</p>
+    </div>
+  </div>
+
+  <!-- 5.3 Symmetric special case -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-green">5.3</div>
+      <div class="subsection-title">EVD for Symmetric Matrices — Spectral Decomposition</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <p>For symmetric \(A = A^T\), the Spectral Theorem guarantees orthogonal eigenvectors. This means \(U^T = U^{-1}\), giving the <strong>spectral decomposition</strong>:</p>
+
+      <div class="box def">
+        <div class="box-label">📐 Spectral Decomposition of Symmetric Matrix</div>
+        \[A = Q\Lambda Q^T = \sum_{i=1}^n \lambda_i\, \mathbf{q}_i\mathbf{q}_i^T\]
+        <p>Each term \(\lambda_i \mathbf{q}_i\mathbf{q}_i^T\) is a <strong>rank-1 matrix</strong> — a projection onto the direction \(\mathbf{q}_i\), scaled by \(\lambda_i\). This decomposes \(A\) into \(n\) independent projections!</p>
+      </div>
+
+      <div class="math-block"><span class="c">-- For A = [[1,2],[2,1]], eigenvectors u₁=[1,1]ᵀ/√2, u₂=[-1,1]ᵀ/√2 --</span>
+
+A = 3 · (1/√2)[1,1]ᵀ (1/√2)[1,1] + (-1) · (1/√2)[-1,1]ᵀ (1/√2)[-1,1]
+
+  = 3 · [[0.5, 0.5],    +  (-1) · [[0.5, -0.5],
+          [0.5, 0.5]]                [-0.5, 0.5]]
+
+  = [[1.5,1.5],[1.5,1.5]] + [[-0.5,0.5],[0.5,-0.5]]
+
+  = [[1,2],[2,1]] ✓</div>
+    </div>
+  </div>
+
+  <!-- 5.4 Applications -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-amber">5.4</div>
+      <div class="subsection-title">Applications in Deep Learning</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="card-grid">
+        <div class="card card-red">
+          <h4>Gradient Dynamics in RNNs</h4>
+          <p>The gradient at time 0 involves \((W^T)^T\) applied \(T\) times. Controlled by eigenvalues of \(W\). Orthogonal RNNs constrain \(W\) to have all eigenvalues on the unit circle, maintaining stable gradients.</p>
+        </div>
+        <div class="card card-blue">
+          <h4>Spectral Normalization</h4>
+          <p>Divide \(W\) by its spectral norm \(\sigma_1(W)\) (largest singular value). For symmetric \(W\), \(\sigma_1 = |\lambda_{\max}|\). Makes the Lipschitz constant of each layer = 1, stabilizing GAN training.</p>
+        </div>
+        <div class="card card-green">
+          <h4>Hessian of Loss Functions</h4>
+          <p>The Hessian \(H = \nabla^2\mathcal{L}\) is symmetric. Its eigenvalues describe the curvature: large eigenvalue = sharp curvature = hard to optimize. Adam adapts learning rates using approximate Hessian diagonal. The condition number \(\lambda_{\max}/\lambda_{\min}\) determines convergence speed of gradient descent.</p>
+        </div>
+        <div class="card card-amber">
+          <h4>Graph Neural Networks</h4>
+          <p>Graph Laplacian \(L = D - A\) is symmetric PSD. Spectral graph convolutions are defined via its eigenvectors. The eigenvalues encode frequencies of the graph — similar to Fourier modes for signal processing.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- end m5 -->
+
+<!-- ═══ MODULE 6: SYMMETRIC MATRICES ═══ -->
+<div id="m6" class="module">
+  <div class="module-eyebrow">Module 06</div>
+  <h1 class="module-title">Symmetric Matrices & the Spectral Theorem</h1>
+  <p class="module-subtitle">The most important class of matrices in machine learning</p>
+  <div class="module-rule"></div>
+
+  <!-- 6.1 Spectral theorem -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-blue">6.1</div>
+      <div class="subsection-title">The Spectral Theorem — Foundation of PCA</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="box thm">
+        <div class="box-label">🏛 Spectral Theorem (The Most Important Theorem in These Modules)</div>
+        <p>Every real symmetric matrix \(A = A^T \in \mathbb{R}^{n\times n}\) has:</p>
+        <ol style="margin-top:10px">
+          <li>All <strong>real</strong> eigenvalues \(\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_n\)</li>
+          <li>A complete set of <strong>orthonormal</strong> eigenvectors \(\mathbf{q}_1, \ldots, \mathbf{q}_n\): \(\mathbf{q}_i^T\mathbf{q}_j = \delta_{ij}\)</li>
+          <li>Therefore: \(A = Q\Lambda Q^T\) where \(Q = [\mathbf{q}_1|\cdots|\mathbf{q}_n]\) is orthogonal</li>
+        </ol>
+      </div>
+
+      <button class="proof-btn" onclick="toggleProof('prf-spectral')">▶ Proof: Eigenvectors of Symmetric Matrices Are Orthogonal</button>
+      <div class="proof-content" id="prf-spectral">
+        <p>Let \(\mathbf{v}_i\) and \(\mathbf{v}_j\) be eigenvectors of symmetric \(A\) with \(\lambda_i \neq \lambda_j\). Consider:</p>
+        \[\mathbf{v}_j^T A \mathbf{v}_i = \lambda_i (\mathbf{v}_j^T \mathbf{v}_i) \quad \text{(multiply eigenvector equation by } \mathbf{v}_j^T\text{)}\]
+        <p>Since \(A = A^T\):</p>
+        \[\mathbf{v}_j^T A \mathbf{v}_i = \mathbf{v}_j^T A^T \mathbf{v}_i = (A\mathbf{v}_j)^T \mathbf{v}_i = \lambda_j \mathbf{v}_j^T \mathbf{v}_i\]
+        <p>So \(\lambda_i (\mathbf{v}_j^T\mathbf{v}_i) = \lambda_j(\mathbf{v}_j^T\mathbf{v}_i)\), giving \((\lambda_i - \lambda_j)(\mathbf{v}_j^T\mathbf{v}_i) = 0\).</p>
+        <p>Since \(\lambda_i \neq \lambda_j\), we must have \(\mathbf{v}_j^T\mathbf{v}_i = 0\). ∎</p>
+      </div>
+
+      <div class="box insight">
+        <div class="box-label">🧠 Why This Makes Symmetric Matrices Perfect for PCA</div>
+        <p>Because eigenvectors are orthonormal, finding coordinates is trivial: \(\alpha_i = \mathbf{q}_i^T\mathbf{x}\). And \(Q^{-1} = Q^T\) — the cheapest possible inverse. This means PCA can be computed efficiently: diagonalizing the covariance matrix \(\Sigma\) (which is symmetric) gives us an orthonormal basis where features are uncorrelated.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6.2 Rayleigh quotient -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-red">6.2</div>
+      <div class="subsection-title">Quadratic Forms & the Rayleigh Quotient</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="box def">
+        <div class="box-label">📐 Definition — Quadratic Form</div>
+        <p>For symmetric \(A\), the <strong>quadratic form</strong> is the scalar function \(f(\mathbf{x}) = \mathbf{x}^T A \mathbf{x}\). It appears in: PCA variance formulas, ridge regression, Gaussian log-likelihoods, and Hessian-based curvature analysis.</p>
+      </div>
+
+      <div class="box thm">
+        <div class="box-label">🏛 Rayleigh Quotient Theorem — Lecture 6, Slide 26</div>
+        <p>For symmetric \(A \in \mathbb{R}^{n\times n}\), the constrained optimization:</p>
+        \[\max_{\mathbf{x}:\|\mathbf{x}\|=1} \mathbf{x}^T A \mathbf{x} = \lambda_1 \quad \text{achieved at } \mathbf{x}^* = \mathbf{q}_1\]
+        \[\min_{\mathbf{x}:\|\mathbf{x}\|=1} \mathbf{x}^T A \mathbf{x} = \lambda_n \quad \text{achieved at } \mathbf{x}^* = \mathbf{q}_n\]
+        <p>where \(\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_n\) are sorted eigenvalues.</p>
+      </div>
+
+      <button class="proof-btn" onclick="toggleProof('prf-rayleigh')">▶ Proof via Lagrange Multipliers</button>
+      <div class="proof-content" id="prf-rayleigh">
+        <p>Solve \(\max \mathbf{x}^TA\mathbf{x}\) subject to \(\mathbf{x}^T\mathbf{x}=1\). Form the Lagrangian:</p>
+        \[\mathcal{L}(\mathbf{x},\lambda) = \mathbf{x}^TA\mathbf{x} - \lambda(\mathbf{x}^T\mathbf{x}-1)\]
+        <p>Set gradient to zero: \(\frac{\partial \mathcal{L}}{\partial \mathbf{x}} = 2A\mathbf{x} - 2\lambda\mathbf{x} = \mathbf{0}\), giving \(A\mathbf{x} = \lambda\mathbf{x}\).</p>
+        <p>So the critical points are eigenvectors of \(A\)! At eigenvector \(\mathbf{q}_i\): \(\mathbf{q}_i^T A \mathbf{q}_i = \lambda_i \mathbf{q}_i^T\mathbf{q}_i = \lambda_i\). The maximum is the largest eigenvalue. ∎</p>
+      </div>
+
+      <div class="box insight">
+        <div class="box-label">🧠 This IS PCA — Direction of Maximum Variance</div>
+        <p>PCA's first principal component is the direction \(\mathbf{p}\) that maximizes the variance of projected data. The variance in direction \(\mathbf{p}\) is \(\mathbf{p}^T\Sigma\mathbf{p}\) (subject to \(\|\mathbf{p}\|=1\)). By the Rayleigh Quotient Theorem, this maximum is \(\lambda_1\) achieved at the eigenvector for the <em>largest eigenvalue</em> of \(\Sigma\). PCA is literally just applying this theorem repeatedly.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6.3 PSD matrices -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-green">6.3</div>
+      <div class="subsection-title">Positive Semi-Definite (PSD) Matrices</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="box def">
+        <div class="box-label">📐 Definition — Positive (Semi-)Definite</div>
+        <p>A symmetric matrix \(A\) is:</p>
+        <ul>
+          <li><strong>Positive Definite (PD):</strong> \(\mathbf{x}^TA\mathbf{x} > 0\) for all \(\mathbf{x}\neq\mathbf{0}\) ↔ all eigenvalues \(> 0\)</li>
+          <li><strong>Positive Semi-Definite (PSD):</strong> \(\mathbf{x}^TA\mathbf{x} \geq 0\) for all \(\mathbf{x}\) ↔ all eigenvalues \(\geq 0\)</li>
+          <li><strong>Indefinite:</strong> Some eigenvalues positive, some negative (saddle point geometry)</li>
+        </ul>
+      </div>
+
+      <div class="box thm">
+        <div class="box-label">🏛 Gram Matrices Are Always PSD</div>
+        <p>For any matrix \(X\), the matrix \(A = X^TX\) is always symmetric PSD:</p>
+        \[\mathbf{v}^T(X^TX)\mathbf{v} = (X\mathbf{v})^T(X\mathbf{v}) = \|X\mathbf{v}\|^2 \geq 0\]
+        <p>Therefore covariance matrices \(\Sigma = \frac{1}{m}X^TX\) always have non-negative eigenvalues. This guarantees PCA variances \(\lambda_i/m \geq 0\).</p>
+      </div>
+
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Matrix</th><th>Type</th><th>Eigenvalues</th><th>DL Example</th></tr></thead>
+        <tbody>
+          <tr><td>Covariance \(\Sigma\)</td><td>PSD</td><td>\(\geq 0\)</td><td>Feature statistics</td></tr>
+          <tr><td>Hessian at local min</td><td>PD</td><td>\(> 0\)</td><td>Loss curvature at optimum</td></tr>
+          <tr><td>Hessian at saddle pt</td><td>Indefinite</td><td>Mixed</td><td>Difficult landscape region</td></tr>
+          <tr><td>Graph Laplacian</td><td>PSD</td><td>\(\geq 0\)</td><td>GNN spectral methods</td></tr>
+        </tbody>
+      </table></div>
+
+      <!-- Interactive eigenvalue visualizer -->
+      <div class="interactive">
+        <div class="interactive-title"><span class="int-badge">INTERACTIVE</span> PCA Explained Variance Calculator</div>
+        <p style="font-size:.85rem;color:var(--muted);margin-bottom:12px">Enter covariance matrix eigenvalues to see variance explained per principal component.</p>
+        <span class="int-label">Eigenvalues (comma-separated, e.g. 50,30,12,5,2,1)</span>
+        <div class="int-row">
+          <input type="text" class="int-input-wide" id="eig-list" value="50,30,12,5,2,1" style="max-width:360px">
+          <button class="int-btn" onclick="calcEigVar()">Compute →</button>
+        </div>
+        <div class="int-out" id="eig-var-out">Enter eigenvalues and press Compute.</div>
+        <canvas id="eig-canvas" width="500" height="160"></canvas>
+      </div>
+    </div>
+  </div>
+</div><!-- end m6 -->
+
+
+<!-- ═══ MODULE 7: PCA ═══ -->
+<div id="m7" class="module">
+  <div class="module-eyebrow">Module 07</div>
+  <h1 class="module-title">Principal Component Analysis (PCA)</h1>
+  <p class="module-subtitle">Three interpretations of the same elegant idea — from IIT Lecture 6 Modules 6.4–6.7</p>
+  <div class="module-rule"></div>
+
+  <!-- 7.1 Motivation -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-blue">7.1</div>
+      <div class="subsection-title">Motivation — Why Reduce Dimensions?</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <p>The curse of dimensionality: as dimensions grow, data becomes sparse, distances become meaningless, and computation explodes. PCA finds a lower-dimensional representation that preserves the most important structure.</p>
+
+      <div class="box example">
+        <div class="box-label">📋 Redundant Dimension Example — Lecture 6 Slide 35</div>
+        <p>Consider a dataset with 3 features \(x, y, z\) where:</p>
+        <div class="math-block">x    y     z
+1.0  1.0   1.0     ← z ≈ y always!
+0.5  0.0   0.0
+0.25 1.0   1.0
+0.35 1.5   1.5
+0.45 1.0   1.0
+0.57 2.0   2.1     ← high correlation ρ(y,z) ≈ 1
+
+The 3rd feature adds almost ZERO new information.
+Drop z → lose almost nothing, save 33% of storage &amp; computation.</div>
+        <p>The Pearson correlation \(\rho_{yz} \approx 1\) means \(z\) is nearly linearly dependent on \(y\). PCA formalizes this by finding the directions of maximum and minimum variance.</p>
+      </div>
+
+      <div class="box def">
+        <div class="box-label">📐 PCA Goal</div>
+        <p>Find a new orthonormal basis \(\mathbf{p}_1, \ldots, \mathbf{p}_n\) such that when data is expressed in this basis, the new dimensions are:</p>
+        <ul>
+          <li><strong>Uncorrelated</strong> (off-diagonal covariances = 0)</li>
+          <li><strong>Ordered by variance</strong> (\(\mathbf{p}_1\) captures most variance, then \(\mathbf{p}_2\), etc.)</li>
+        </ul>
+        <p>Then we keep only the top \(k\) dimensions, discarding the rest.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7.2 Mathematical setup -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-red">7.2</div>
+      <div class="subsection-title">Mathematical Setup — Data Matrix & Covariance</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <p>Let \(X \in \mathbb{R}^{m\times n}\) be a data matrix: \(m\) samples, \(n\) features. Assume columns are <strong>zero-mean</strong> (subtract mean of each feature).</p>
+
+      <div class="box def">
+        <div class="box-label">📐 Covariance Matrix</div>
+        \[\Sigma = \frac{1}{m} X^T X \in \mathbb{R}^{n\times n}\]
+        <p>Entry \(\Sigma_{ij} = \frac{1}{m}\sum_k X_{ki}X_{kj}\) = sample covariance between features \(i\) and \(j\). The diagonal \(\Sigma_{ii}\) = variance of feature \(i\). Always symmetric PSD.</p>
+      </div>
+
+      <button class="proof-btn" onclick="toggleProof('prf-cov')">▶ Proof that Σ = (1/m)X^TX is the covariance matrix</button>
+      <div class="proof-content" id="prf-cov">
+        <p>By definition, the covariance between features \(i\) and \(j\) is:</p>
+        \[C_{ij} = \frac{1}{m}\sum_{k=1}^m (X_{ki} - \mu_i)(X_{kj} - \mu_j)\]
+        <p>Since columns are zero-mean (\(\mu_i = 0\)):</p>
+        \[C_{ij} = \frac{1}{m}\sum_{k=1}^m X_{ki}X_{kj} = \frac{1}{m}(X^TX)_{ij}\]
+        <p>So \(\Sigma = \frac{1}{m}X^TX\). ∎</p>
+      </div>
+
+      <div class="box def">
+        <div class="box-label">📐 Transformation to New Basis</div>
+        <p>Let \(P = [\mathbf{p}_1 | \cdots | \mathbf{p}_n]\) be an orthogonal matrix of new basis vectors. The transformed data matrix is:</p>
+        \[\hat{X} = XP \in \mathbb{R}^{m\times n}\]
+        <p>Row \(i\) of \(\hat{X}\) is the representation of data point \(\mathbf{x}_i\) in the new basis: coordinate \(j\) is \(\hat{X}_{ij} = \mathbf{x}_i^T\mathbf{p}_j\) (projection of \(\mathbf{x}_i\) onto \(\mathbf{p}_j\)).</p>
+      </div>
+
+      <div class="box thm">
+        <div class="box-label">🏛 Key Theorem: Covariance of Transformed Data</div>
+        \[\frac{1}{m}\hat{X}^T\hat{X} = \frac{1}{m}(XP)^T(XP) = P^T \frac{X^TX}{m} P = P^T\Sigma P\]
+        <p>We want this to be diagonal: \(P^T\Sigma P = D\). Which orthogonal \(P\) diagonalizes \(\Sigma\)?</p>
+        <p><strong>Answer:</strong> \(P = Q\), the matrix of eigenvectors of \(\Sigma\). By the Spectral Theorem, \(Q^T\Sigma Q = \Lambda\).</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7.3 Interpretation 1 -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-green">7.3</div>
+      <div class="subsection-title">Interpretation 1 — Decorrelation (Zero Covariance)</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <p>We want the transformed dimensions to be uncorrelated. Uncorrelated means the off-diagonal entries of the transformed covariance matrix are zero — i.e., the covariance matrix is diagonal.</p>
+
+      <div class="math-block"><span class="c">-- We want: --</span>
+(1/m)·X̂ᵀX̂ = PᵀΣP = D   (diagonal)
+
+<span class="c">-- Which P diagonalizes Σ? --</span>
+<span class="hl">P = eigenvectors of Σ = (1/m)XᵀX</span>
+
+<span class="c">-- Then: PᵀΣP = QᵀΛQ·Q = QᵀQΛ = Λ  (diagonal of eigenvalues) --</span>
+<span class="c">-- The eigenvalues appear on the diagonal = variances of new dimensions! --</span></div>
+
+      <div class="box insight">
+        <div class="box-label">🧠 Decorrelation = Diagonalizing the Covariance Matrix</div>
+        <p>In the original basis, features are correlated (off-diagonal \(\Sigma_{ij} \neq 0\)). In the eigenvector basis, features are perfectly uncorrelated (\(\hat{\Sigma}_{ij} = 0\) for \(i\neq j\)). Uncorrelated features are easier to learn from — they don't confound each other.</p>
+        <p>Batch normalization does something similar: it normalizes activations to have zero mean and unit variance, reducing internal covariate shift.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7.4 Interpretation 2 -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-amber">7.4</div>
+      <div class="subsection-title">Interpretation 2 — Minimum Reconstruction Error</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <p>We have \(n\) basis vectors \(\mathbf{p}_1, \ldots, \mathbf{p}_n\). We keep only the top \(k\). We want to minimize the total squared reconstruction error when we discard dimensions \(k+1, \ldots, n\):</p>
+
+      <div class="box def">
+        <div class="box-label">📐 Reconstruction Error</div>
+        \[e = \sum_{i=1}^m \|\mathbf{x}_i - \hat{\mathbf{x}}_i\|^2 \quad \text{where } \hat{\mathbf{x}}_i = \sum_{j=1}^k (\mathbf{p}_j^T\mathbf{x}_i)\,\mathbf{p}_j\]
+        <p>This simplifies to:</p>
+        \[e = \sum_{j=k+1}^n \mathbf{p}_j^T (mC)\mathbf{p}_j = m\sum_{j=k+1}^n \mathbf{p}_j^T\Sigma\mathbf{p}_j\]
+        <p>We minimize this subject to \(\mathbf{p}_j^T\mathbf{p}_j = 1\). By the Rayleigh Quotient Theorem, the minimum is achieved when \(\mathbf{p}_j\) are eigenvectors of \(\Sigma\) for the <em>smallest</em> eigenvalues.</p>
+      </div>
+
+      <div class="box example">
+        <div class="box-label">📋 Concrete Example — Lecture 6 Slide 50</div>
+        <div class="math-block">Data: two new basis vectors u₁=[1,1]ᵀ/√2, u₂=[-1,1]ᵀ/√2 (eigenvectors)
+
+Point x = [3.3, 3.0]ᵀ
+α₁ = u₁ᵀx = (3.3+3.0)/√2 = 6.3/√2 ≈ 4.455
+α₂ = u₂ᵀx = (-3.3+3.0)/√2 = -0.3/√2 ≈ -0.212
+
+<span class="hl">Perfect reconstruction (k=2): x = α₁u₁ + α₂u₂ = [3.3, 3.0]ᵀ ✓</span>
+
+Compressed (k=1, drop u₂): x̂ = α₁u₁ = 4.455·[1/√2, 1/√2]ᵀ = [3.15, 3.15]ᵀ
+Reconstruction error = ||[3.3,3.0] - [3.15,3.15]||² = 0.0225+0.0225 = 0.045
+
+<span class="c">-- The small error (0.045) is due to the tiny α₂ (low variance direction) --</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7.5 Interpretation 3 -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-violet">7.5</div>
+      <div class="subsection-title">Interpretation 3 — Maximum Variance Directions</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="box thm">
+        <div class="box-label">🏛 Variance Along the i-th Principal Component</div>
+        <p>The variance of the projected data along the \(i\)-th eigenvector \(\mathbf{p}_i\) of \(\Sigma\) is:</p>
+        \[\frac{\hat{X}_i^T\hat{X}_i}{m} = \frac{1}{m}(X\mathbf{p}_i)^T(X\mathbf{p}_i) = \mathbf{p}_i^T\frac{X^TX}{m}\mathbf{p}_i = \mathbf{p}_i^T\Sigma\mathbf{p}_i = \mathbf{p}_i^T(\lambda_i\mathbf{p}_i) = \lambda_i\]
+        <p>So variance along the \(i\)-th PC = \(\lambda_i\) (or \(\lambda_i/m\) depending on normalisation). Larger eigenvalue = more variance = more information!</p>
+      </div>
+
+      <div class="box insight">
+        <div class="box-label">🧠 Three Interpretations, One Answer</div>
+        <p>All three interpretations (decorrelation, min error, max variance) lead to the same solution: the eigenvectors of \(\Sigma\), sorted by decreasing eigenvalue. This is not a coincidence — they're all asking the same geometric question in different language. The eigenvectors of the covariance matrix are the "natural axes" of the data.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7.6 Algorithm + Eigenfaces -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-dark">7.6</div>
+      <div class="subsection-title">PCA Algorithm & Eigenfaces Application</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="steps">
+        <div class="step"><div class="step-badge">1</div><div class="step-body"><h5>Center the data</h5><p>Subtract the column mean from each feature: \(X \leftarrow X - \mathbf{1}\boldsymbol{\mu}^T\). Ensures \(\Sigma = \frac{1}{m}X^TX\) exactly.</p></div></div>
+        <div class="step"><div class="step-badge">2</div><div class="step-body"><h5>Compute covariance \(\Sigma = \frac{1}{m}X^TX \in \mathbb{R}^{n\times n}\)</h5><p>If \(n\) is huge (e.g., images), this is expensive. Use \(XX^T \in \mathbb{R}^{m\times m}\) + kernel trick, or directly use SVD of \(X\).</p></div></div>
+        <div class="step"><div class="step-badge">3</div><div class="step-body"><h5>Eigendecompose \(\Sigma = Q\Lambda Q^T\)</h5><p>Sort eigenvectors by decreasing eigenvalue: \(\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_n \geq 0\). The eigenvectors \(\mathbf{q}_i\) are the <em>principal components</em>.</p></div></div>
+        <div class="step"><div class="step-badge">4</div><div class="step-body"><h5>Choose \(k\): how many components to keep</h5><p>Pick \(k\) such that \(\sum_{i=1}^k \lambda_i / \sum_{i=1}^n \lambda_i \geq 0.95\) (95% explained variance). Or use a scree plot (elbow method).</p></div></div>
+        <div class="step"><div class="step-badge">5</div><div class="step-body"><h5>Project: \(\hat{X} = XQ_k\) where \(Q_k = [\mathbf{q}_1|\cdots|\mathbf{q}_k]\)</h5><p>Each row of \(\hat{X} \in \mathbb{R}^{m\times k}\) is the low-dimensional representation of one data point.</p></div></div>
+        <div class="step"><div class="step-badge">6</div><div class="step-body"><h5>Optional: reconstruct for visualization</h5><p>\(\tilde{X} = \hat{X}Q_k^T \approx X\). The reconstruction error \(\|X - \tilde{X}\|_F^2 = m\sum_{i=k+1}^n \lambda_i\).</p></div></div>
+      </div>
+
+      <h4>Eigenfaces — Faces = Linear Combination of Eigenvectors</h4>
+      <p>From Lecture 6 Slides 57–59: Consider \(m\) face images, each \(100\times 100 = 10{,}000\) pixels. Build \(X \in \mathbb{R}^{m\times 10000}\).</p>
+
+      <div class="card-grid">
+        <div class="card card-red">
+          <h4>Original Storage</h4>
+          <p>Each image: 10,000 floats. Total: \(10{,}000 \times m\) floats. Example: \(m=1000\) images = 10M numbers.</p>
+        </div>
+        <div class="card card-green">
+          <h4>PCA Compressed Storage</h4>
+          <p>Store 100 eigenfaces (\(100\times 10{,}000\) = 1M numbers, one-time) + 100 coefficients per image (\(100\times 1000\) = 100K). Total: 1.1M instead of 10M = 9× compression!</p>
+        </div>
+      </div>
+
+      <p>Each eigenface \(\mathbf{p}_j\) (reshaped as 100×100) looks like a ghostly face — it captures a specific mode of variation across all faces (lighting, pose, expression, etc.). Any new face can be reconstructed as \(\hat{\mathbf{x}} = \sum_j \alpha_j \mathbf{p}_j\).</p>
+
+      <!-- Interactive PCA variance -->
+      <div class="interactive">
+        <div class="interactive-title"><span class="int-badge">INTERACTIVE</span> Scree Plot — Cumulative Explained Variance</div>
+        <span class="int-label">Eigenvalues (comma-separated)</span>
+        <div class="int-row">
+          <input type="text" class="int-input-wide" id="pca-eigs" value="40,20,15,10,5,3,2,1,1,1,0.5,0.5" style="max-width:400px">
+          <button class="int-btn" onclick="drawScree()">Draw Scree Plot →</button>
+        </div>
+        <div class="int-out" id="scree-out"></div>
+        <canvas id="scree-canvas" width="520" height="200"></canvas>
+      </div>
+
+      <!-- Quiz -->
+      <div class="quiz">
+        <div class="quiz-tag">✦ Check Your Understanding</div>
+        <div class="quiz-q">In PCA, why do we discard eigenvectors corresponding to the <em>smallest</em> eigenvalues?</div>
+        <div class="quiz-opts">
+          <div class="quiz-opt" onclick="chk(this,false,'q3')"><span class="quiz-opt-key">A</span>Because they are numerically unstable</div>
+          <div class="quiz-opt" onclick="chk(this,false,'q3')"><span class="quiz-opt-key">B</span>Because they correspond to negative eigenvalues</div>
+          <div class="quiz-opt" onclick="chk(this,true,'q3')"><span class="quiz-opt-key">C</span>Because variance along those directions is small (= \(\lambda_i/m\)), so they contribute little — keeping them would mostly just model noise</div>
+          <div class="quiz-opt" onclick="chk(this,false,'q3')"><span class="quiz-opt-key">D</span>Because they are not eigenvectors of \(X^TX\)</div>
+        </div>
+        <div class="quiz-fb" id="q3"></div>
+      </div>
+    </div>
+  </div>
+</div><!-- end m7 -->
+
+
+<!-- ═══ MODULE 8: SVD ═══ -->
+<div id="m8" class="module">
+  <div class="module-eyebrow">Module 08</div>
+  <h1 class="module-title">Singular Value Decomposition (SVD)</h1>
+  <p class="module-subtitle">The generalization of EVD to every matrix — the most powerful factorization in linear algebra</p>
+  <div class="module-rule"></div>
+
+  <!-- 8.1 Why SVD -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-blue">8.1</div>
+      <div class="subsection-title">Why EVD Isn't Enough — The Need for SVD</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <p>EVD requires square matrices. But neural network weight matrices are rectangular: \(W \in \mathbb{R}^{d_{out}\times d_{in}}\). And eigenvectors require \(A\mathbf{x} = \lambda\mathbf{x}\) — but if the input and output live in different spaces, this equation makes no sense dimensionally.</p>
+
+      <div class="math-block">A ∈ ℝ^(m×n):   A · x = result
+                    (m×n)(n×1) = (m×1)
+
+For eigenvector: need Ax = λx → LHS ∈ ℝᵐ, RHS ∈ ℝⁿ
+
+<span class="hl">If m ≠ n: IMPOSSIBLE. Eigenvectors can't exist for rectangular A.</span></div>
+
+      <p>But we still want the benefit of EVD: expressing the transformation in a "natural basis" where it acts diagonally. SVD provides exactly this, using <em>two separate</em> orthonormal bases — one for the input space, one for the output space.</p>
+    </div>
+  </div>
+
+  <!-- 8.2 The core idea -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-red">8.2</div>
+      <div class="subsection-title">The Big Idea — Paired Singular Vectors</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <p>Instead of one set of eigenvectors, we find <em>pairs</em> of vectors \((\mathbf{v}_i, \mathbf{u}_i)\) such that:</p>
+      \[A\mathbf{v}_i = \sigma_i\mathbf{u}_i\]
+      where \(\mathbf{v}_i \in \mathbb{R}^n\) (input space), \(\mathbf{u}_i \in \mathbb{R}^m\) (output space), and \(\sigma_i \geq 0\) (singular value).
+
+      <div class="box insight">
+        <div class="box-label">🧠 Geometric Picture</div>
+        <p>Think of \(A\) as a function from \(\mathbb{R}^n\) to \(\mathbb{R}^m\). SVD finds the best "input-output axis pairs":</p>
+        <ul>
+          <li>\(\mathbf{v}_i\): the \(i\)-th input direction</li>
+          <li>\(\mathbf{u}_i\): the \(i\)-th output direction that \(\mathbf{v}_i\) maps to</li>
+          <li>\(\sigma_i\): how much the \(i\)-th input axis is stretched</li>
+        </ul>
+        <p>In this pair-basis, \(A\) acts diagonally: it maps \(\mathbf{v}_i\) to \(\sigma_i\mathbf{u}_i\). Every input \(\mathbf{x} = \sum_i \alpha_i\mathbf{v}_i\) maps to \(A\mathbf{x} = \sum_i \alpha_i\sigma_i\mathbf{u}_i\).</p>
+      </div>
+
+      <div class="box def">
+        <div class="box-label">📐 Singular Value Decomposition</div>
+        \[\boxed{A = U\Sigma V^T}, \qquad A \in \mathbb{R}^{m\times n}\]
+        <ul style="margin-top:12px">
+          <li>\(U \in \mathbb{R}^{m\times m}\): orthogonal matrix, columns = <strong>left singular vectors</strong> (output basis)</li>
+          <li>\(\Sigma \in \mathbb{R}^{m\times n}\): diagonal with \(\sigma_1 \geq \sigma_2 \geq \cdots \geq \sigma_k \geq 0\), \(k=\min(m,n)\) (<strong>singular values</strong>)</li>
+          <li>\(V \in \mathbb{R}^{n\times n}\): orthogonal matrix, columns = <strong>right singular vectors</strong> (input basis)</li>
+        </ul>
+        <p style="margin-top:10px">SVD exists for <strong>every</strong> real matrix \(A\). No exceptions.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8.3 Derivation -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-green">8.3</div>
+      <div class="subsection-title">Derivation — How to Find U, Σ, V</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <p>The key trick: form the symmetric matrices \(A^TA\) and \(AA^T\), then use EVD on them.</p>
+
+      <div class="math-block"><span class="lbl">-- If A = UΣVᵀ, then: --</span>
+
+AᵀA = (UΣVᵀ)ᵀ(UΣVᵀ) = VΣᵀUᵀ·UΣVᵀ = VΣᵀΣVᵀ
+    <span class="hl">= V · diag(σ₁², σ₂², ...) · Vᵀ</span>
+    → Eigenvalues of AᵀA are σᵢ²
+    → Eigenvectors of AᵀA are the RIGHT singular vectors vᵢ
+
+AAᵀ = (UΣVᵀ)(UΣVᵀ)ᵀ = UΣVᵀ·VΣᵀUᵀ = UΣΣᵀUᵀ
+    <span class="hl">= U · diag(σ₁², σ₂², ...) · Uᵀ</span>
+    → Eigenvectors of AAᵀ are the LEFT singular vectors uᵢ
+
+<span class="c">-- Singular values: σᵢ = √(λᵢ(AᵀA)) --</span>
+<span class="c">-- Note: AᵀA and AAᵀ have the same nonzero eigenvalues! --</span></div>
+
+      <div class="box thm">
+        <div class="box-label">🏛 Key Connection: SVD ↔ EVD</div>
+        <ul>
+          <li><strong>V</strong> = eigenvectors of \(A^TA\) (right singular vectors)</li>
+          <li><strong>U</strong> = eigenvectors of \(AA^T\) (left singular vectors)</li>
+          <li><strong>Singular values</strong> \(\sigma_i = \sqrt{\lambda_i(A^TA)}\)</li>
+          <li>Nonzero eigenvalues of \(A^TA\) = nonzero eigenvalues of \(AA^T\)</li>
+          <li>Eigenvectors of \(\Sigma = \frac{1}{m}X^TX\) = right singular vectors of \(X\)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8.4 Geometric interpretation -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-amber">8.4</div>
+      <div class="subsection-title">Geometric Interpretation & Rank-k Approximation</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="flow">
+        <div class="flow-node"><strong>\(V^T\)</strong>Rotate input<br>to principal<br>input directions</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node"><strong>\(\Sigma\)</strong>Scale each<br>axis by \(\sigma_i\)<br>(0 for null directions)</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node"><strong>\(U\)</strong>Rotate to<br>principal output<br>directions</div>
+      </div>
+
+      <p>Every matrix is a rotation, followed by axis-aligned scaling, followed by another rotation. The singular values measure the scale factors. If \(\sigma_i = 0\), that input direction maps to zero (it's in the null space).</p>
+
+      <h4>Low-Rank (Truncated) SVD</h4>
+      <div class="math-block">A = U Σ Vᵀ = Σᵢ₌₁ᵣ σᵢ uᵢ vᵢᵀ
+
+<span class="c">-- Each term σᵢuᵢvᵢᵀ is a rank-1 matrix (outer product) --</span>
+<span class="c">-- σ₁ ≥ σ₂ ≥ ... ≥ σᵣ &gt; 0 --</span>
+
+Rank-k approximation: Aₖ = Σᵢ₌₁ᵏ σᵢ uᵢ vᵢᵀ
+
+<span class="hl">This is the BEST possible rank-k approximation of A!</span></div>
+
+      <div class="box thm">
+        <div class="box-label">🏛 Eckart–Young Theorem — Lecture 6, Slide 70</div>
+        \[A_k = \sum_{i=1}^k \sigma_i\,\mathbf{u}_i\mathbf{v}_i^T = \underset{\text{rank}(B)\leq k}{\arg\min}\|A - B\|_F^2\]
+        <p>The truncated SVD minimizes the Frobenius norm reconstruction error:</p>
+        \[\|A - A_k\|_F^2 = \sum_{i=k+1}^r \sigma_i^2\]
+        <p>Discarding the smallest singular values causes the least damage.</p>
+      </div>
+
+      <!-- Interactive singular value demo -->
+      <div class="interactive">
+        <div class="interactive-title"><span class="int-badge">INTERACTIVE</span> Low-Rank Approximation Error Calculator</div>
+        <span class="int-label">Singular values (comma-separated)</span>
+        <div class="int-row">
+          <input type="text" class="int-input-wide" id="svd-sigmas" value="10,6,4,2,1,0.5,0.2,0.1" style="max-width:400px">
+          <button class="int-btn" onclick="calcSVD()">Compute →</button>
+        </div>
+        <div class="int-out" id="svd-out">Enter singular values and press Compute.</div>
+        <canvas id="svd-canvas" width="520" height="160"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8.5 DL applications -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-violet">8.5</div>
+      <div class="subsection-title">Deep Learning Applications of SVD</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="card-grid">
+        <div class="card card-red">
+          <h4>LoRA — Low-Rank Adaptation</h4>
+          <p>Fine-tune large LLMs by constraining weight updates: \(\Delta W = BA\) where \(B \in \mathbb{R}^{d\times r}\), \(A \in \mathbb{R}^{r\times d}\), \(r \ll d\). Instead of \(d^2\) parameters, only \(2dr\). SVD shows this is optimal for low-rank approximations.</p>
+        </div>
+        <div class="card card-blue">
+          <h4>Spectral Normalization</h4>
+          <p>Normalize each weight matrix by its largest singular value: \(\tilde{W} = W/\sigma_1(W)\). Ensures each layer has Lipschitz constant 1. Stabilizes GAN training by preventing discriminator from growing unboundedly.</p>
+        </div>
+        <div class="card card-green">
+          <h4>Matrix Factorization for Recommendations</h4>
+          <p>User-item matrix \(R \approx U\Sigma V^T\). Users \(= U\Sigma\), items \(= V\Sigma\). The \(k\)-dimensional user/item embeddings come from the top-\(k\) singular vectors. This is collaborative filtering via SVD.</p>
+        </div>
+        <div class="card card-amber">
+          <h4>Orthogonal Weight Initialization</h4>
+          <p>Sample random weight matrix, compute \(A = U\Sigma V^T\), return \(U\) (or \(V\)). This gives a perfectly orthogonal initialization — no vanishing/exploding gradients at startup because orthogonal matrices preserve vector norms.</p>
+        </div>
+        <div class="card card-violet">
+          <h4>PCA via SVD of X</h4>
+          <p>Instead of computing \(X^TX\) (expensive if \(n\) is huge), directly compute the SVD of \(X\). Right singular vectors \(= \) eigenvectors of \(X^TX\). Numerically more stable and often faster.</p>
+        </div>
+        <div class="card card-dark">
+          <h4>Data Compression & Image Reconstruction</h4>
+          <p>Use Eckart-Young: keep top \(k\) singular values. Image quality degrades gracefully as \(k\) decreases. Useful for understanding model compression via low-rank weight matrices.</p>
+        </div>
+      </div>
+
+      <!-- Quiz -->
+      <div class="quiz">
+        <div class="quiz-tag">✦ Check Your Understanding</div>
+        <div class="quiz-q">The singular values \(\sigma_i\) of matrix \(A\) are related to eigenvalues of \(A^TA\) by:</div>
+        <div class="quiz-opts">
+          <div class="quiz-opt" onclick="chk(this,false,'q4')"><span class="quiz-opt-key">A</span>\(\sigma_i = \lambda_i(A^TA)\) — they equal the eigenvalues directly</div>
+          <div class="quiz-opt" onclick="chk(this,true,'q4')"><span class="quiz-opt-key">B</span>\(\sigma_i = \sqrt{\lambda_i(A^TA)}\) — they are the square roots</div>
+          <div class="quiz-opt" onclick="chk(this,false,'q4')"><span class="quiz-opt-key">C</span>\(\sigma_i = \lambda_i(A^TA)^2\) — they are the squares</div>
+          <div class="quiz-opt" onclick="chk(this,false,'q4')"><span class="quiz-opt-key">D</span>\(\sigma_i = \lambda_i(A)\) — same as eigenvalues of A</div>
+        </div>
+        <div class="quiz-fb" id="q4"></div>
+      </div>
+    </div>
+  </div>
+</div><!-- end m8 -->
+
+
+<!-- ═══ MODULE 9: PROOFS ═══ -->
+<div id="m9" class="module">
+  <div class="module-eyebrow">Module 09</div>
+  <h1 class="module-title">Proofs & Theorems</h1>
+  <p class="module-subtitle">Complete, rigorous proofs of all key results — expand when ready</p>
+  <div class="module-rule"></div>
+
+  <!-- Theorem 1 -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-blue">T1</div>
+      <div class="subsection-title">Theorem: Eigenvectors with Distinct Eigenvalues Are Linearly Independent</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="box thm"><div class="box-label">🏛 Statement</div>
+        <p>If \(\mathbf{v}_1, \ldots, \mathbf{v}_k\) are eigenvectors of \(A\) with <em>distinct</em> eigenvalues \(\lambda_1, \ldots, \lambda_k\), they are linearly independent.</p>
+      </div>
+      <div class="proof-content open">
+        <p><strong>Proof by induction on \(k\):</strong></p>
+        <p>Base case \(k=1\): A single nonzero eigenvector is linearly independent. ✓</p>
+        <p>Inductive step: Assume the first \(k-1\) eigenvectors are independent. Suppose for contradiction:</p>
+        \[c_1\mathbf{v}_1 + c_2\mathbf{v}_2 + \cdots + c_k\mathbf{v}_k = \mathbf{0} \quad \cdots (1)\]
+        <p>Apply \(A\) to both sides:</p>
+        \[c_1\lambda_1\mathbf{v}_1 + c_2\lambda_2\mathbf{v}_2 + \cdots + c_k\lambda_k\mathbf{v}_k = \mathbf{0} \quad \cdots (2)\]
+        <p>Multiply (1) by \(\lambda_k\) and subtract from (2):</p>
+        \[c_1(\lambda_1-\lambda_k)\mathbf{v}_1 + c_2(\lambda_2-\lambda_k)\mathbf{v}_2 + \cdots + c_{k-1}(\lambda_{k-1}-\lambda_k)\mathbf{v}_{k-1} = \mathbf{0}\]
+        <p>Since eigenvalues are distinct, \((\lambda_i - \lambda_k) \neq 0\) for \(i < k\). By the inductive hypothesis, \(\mathbf{v}_1, \ldots, \mathbf{v}_{k-1}\) are independent, so \(c_i(\lambda_i-\lambda_k) = 0 \Rightarrow c_i = 0\) for all \(i < k\). Substituting back into (1): \(c_k\mathbf{v}_k = \mathbf{0}\), and since \(\mathbf{v}_k \neq \mathbf{0}\), we get \(c_k = 0\). All coefficients are 0. ∎</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Theorem 2 -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-red">T2</div>
+      <div class="subsection-title">Theorem: Symmetric Matrices Have Real Eigenvalues</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="box thm"><div class="box-label">🏛 Statement</div><p>All eigenvalues of a real symmetric matrix are real.</p></div>
+      <div class="proof-content open">
+        <p>Suppose \(A\mathbf{x} = \lambda\mathbf{x}\) where \(\lambda\) might be complex, \(\mathbf{x}\) might be complex. Take the conjugate transpose (denoted \(^*\)) of both sides:</p>
+        \[\mathbf{x}^* A^T = \bar{\lambda} \mathbf{x}^*\]
+        <p>Since \(A = A^T\), multiply on the right by \(\mathbf{x}\):</p>
+        \[\mathbf{x}^* A \mathbf{x} = \bar{\lambda} \mathbf{x}^*\mathbf{x}\]
+        <p>But also, multiplying \(A\mathbf{x} = \lambda\mathbf{x}\) on the left by \(\mathbf{x}^*\):</p>
+        \[\mathbf{x}^* A \mathbf{x} = \lambda \mathbf{x}^*\mathbf{x}\]
+        <p>Subtracting: \((\lambda - \bar{\lambda})\mathbf{x}^*\mathbf{x} = 0\). Since \(\mathbf{x}^*\mathbf{x} = \|\mathbf{x}\|^2 > 0\), we get \(\lambda = \bar{\lambda}\), meaning \(\lambda\) is real. ∎</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Theorem 3 -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-green">T3</div>
+      <div class="subsection-title">Theorem: Spectral Theorem (Symmetric EVD)</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="box thm"><div class="box-label">🏛 Statement</div><p>Every real symmetric \(A\) has a complete orthonormal set of eigenvectors: \(A = Q\Lambda Q^T\) with \(Q^TQ = I\).</p></div>
+      <div class="proof-content open">
+        <p><strong>Sketch (induction on \(n\)):</strong></p>
+        <p>Base case \(n=1\): trivial. For the inductive step: \(A\) has at least one real eigenvalue \(\lambda_1\) (by the fundamental theorem of algebra, since eigenvalues are real for symmetric matrices). Let \(\mathbf{q}_1\) be the corresponding unit eigenvector.</p>
+        <p>Consider the subspace \(W = \{\mathbf{q}_1\}^\perp\) (all vectors orthogonal to \(\mathbf{q}_1\)). For any \(\mathbf{w} \in W\): \(\mathbf{q}_1^T(A\mathbf{w}) = (A\mathbf{q}_1)^T\mathbf{w} = \lambda_1\mathbf{q}_1^T\mathbf{w} = 0\), so \(A\mathbf{w} \in W\). Thus \(A\) maps \(W\) to itself — we can restrict \(A\) to \(W\).</p>
+        <p>The restricted map \(A|_W : W \to W\) is also symmetric and has dimension \(n-1\). By induction, it has an orthonormal eigenbasis \(\mathbf{q}_2, \ldots, \mathbf{q}_n\) for \(W\). Together with \(\mathbf{q}_1\), these form an orthonormal eigenbasis for all of \(\mathbb{R}^n\). ∎</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Theorem 4 -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-amber">T4</div>
+      <div class="subsection-title">Theorem: SVD Exists for Every Matrix</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="box thm"><div class="box-label">🏛 Statement</div><p>Every \(A \in \mathbb{R}^{m\times n}\) has a singular value decomposition \(A = U\Sigma V^T\).</p></div>
+      <div class="proof-content open">
+        <p>\(A^TA\) is symmetric PSD (proof: \(\mathbf{v}^T A^TA \mathbf{v} = \|A\mathbf{v}\|^2 \geq 0\)). By the Spectral Theorem, it has a real orthonormal eigenbasis \(\mathbf{v}_1, \ldots, \mathbf{v}_n\) with eigenvalues \(\lambda_1 \geq \cdots \geq \lambda_n \geq 0\).</p>
+        <p>Let \(r = \text{rank}(A)\). The first \(r\) eigenvalues are positive; the rest are 0. Define \(\sigma_i = \sqrt{\lambda_i}\) for \(i=1,\ldots,r\). Define \(\mathbf{u}_i = \frac{1}{\sigma_i}A\mathbf{v}_i\) for \(i=1,\ldots,r\).</p>
+        <p>Check: \(\mathbf{u}_i^T\mathbf{u}_j = \frac{1}{\sigma_i\sigma_j}\mathbf{v}_i^T A^TA \mathbf{v}_j = \frac{\lambda_j}{\sigma_i\sigma_j}\mathbf{v}_i^T\mathbf{v}_j = \delta_{ij}\). So \(\mathbf{u}_1,\ldots,\mathbf{u}_r\) are orthonormal.</p>
+        <p>Extend to an orthonormal basis \(\mathbf{u}_1,\ldots,\mathbf{u}_m\) of \(\mathbb{R}^m\) (Gram-Schmidt). Then \(AV = U\Sigma\) (verified by checking each column), so \(A = U\Sigma V^T\). ∎</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Theorem 5 -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-violet">T5</div>
+      <div class="subsection-title">Theorem: Eckart–Young (Best Low-Rank Approximation)</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="box thm"><div class="box-label">🏛 Statement</div>
+        <p>Among all rank-\(k\) matrices \(B\), the one minimizing \(\|A - B\|_F^2\) is \(A_k = \sum_{i=1}^k \sigma_i\mathbf{u}_i\mathbf{v}_i^T\), with error \(\|A - A_k\|_F^2 = \sum_{i=k+1}^r \sigma_i^2\).</p>
+      </div>
+      <div class="proof-content open">
+        <p><strong>Error computation:</strong> \(\|A - A_k\|_F^2 = \|U\Sigma V^T - U\Sigma_k V^T\|_F^2 = \|U(\Sigma-\Sigma_k)V^T\|_F^2\). Since \(U, V\) are orthogonal and the Frobenius norm is invariant under orthogonal multiplication: \(= \|\Sigma-\Sigma_k\|_F^2 = \sum_{i=k+1}^r \sigma_i^2\).</p>
+        <p><strong>Optimality (sketch):</strong> Let \(B\) be any rank-\(k\) matrix. By the min-max characterization of singular values, \(\sigma_{k+1}(A) = \min_{\text{rank}(C)\leq k} \|A-C\|_2\). More generally, a dimension argument shows that \(\|A-B\|_F \geq \|A-A_k\|_F\) for all rank-\(k\) \(B\). (Full proof uses the unitary invariance of the Frobenius norm and the Courant-Fischer min-max theorem.) ∎</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Theorem 6 -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-dark">T6</div>
+      <div class="subsection-title">Theorem: Rayleigh Quotient (Max Variance Direction)</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="box thm"><div class="box-label">🏛 Statement</div>
+        <p>For symmetric \(A\): \(\max_{\|\mathbf{x}\|=1} \mathbf{x}^TA\mathbf{x} = \lambda_{\max}(A)\), achieved at the corresponding eigenvector.</p>
+      </div>
+      <div class="proof-content open">
+        <p>Express \(\mathbf{x}\) in the eigenbasis: \(\mathbf{x} = \sum_i c_i\mathbf{q}_i\) with \(\sum_i c_i^2 = 1\) (since eigenvectors are orthonormal).</p>
+        \[\mathbf{x}^TA\mathbf{x} = \left(\sum_i c_i\mathbf{q}_i\right)^T A \left(\sum_j c_j\mathbf{q}_j\right) = \sum_{i,j} c_ic_j \mathbf{q}_i^T(A\mathbf{q}_j) = \sum_i c_i^2 \lambda_i\]
+        <p>(Cross terms vanish by orthogonality: \(\mathbf{q}_i^T A\mathbf{q}_j = \lambda_j\mathbf{q}_i^T\mathbf{q}_j = 0\) for \(i\neq j\).)</p>
+        \[\mathbf{x}^TA\mathbf{x} = \sum_i c_i^2 \lambda_i \leq \lambda_{\max}\sum_i c_i^2 = \lambda_{\max}\]
+        <p>Equality holds when \(\mathbf{x} = \mathbf{q}_{\max}\) (the eigenvector for \(\lambda_{\max}\)). ∎</p>
+      </div>
+    </div>
+  </div>
+</div><!-- end m9 -->
+
+
+<!-- ═══ MODULE 10: QUICK REFERENCE ═══ -->
+<div id="m10" class="module">
+  <div class="module-eyebrow">Module 10</div>
+  <h1 class="module-title">Quick Reference & Cheatsheet</h1>
+  <p class="module-subtitle">Every formula, definition, and connection in one place</p>
+  <div class="module-rule"></div>
+
+  <!-- Core Definitions -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-blue">REF</div>
+      <div class="subsection-title">All Core Definitions at a Glance</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Concept</th><th>Formula / Definition</th><th>Key Condition</th></tr></thead>
+        <tbody>
+          <tr><td>Eigenvector</td><td>\(A\mathbf{x} = \lambda\mathbf{x}\)</td><td>\(\mathbf{x}\neq\mathbf{0}\), \(A\) square</td></tr>
+          <tr><td>Characteristic eq</td><td>\(\det(A-\lambda I)=0\)</td><td>Gives all \(\lambda\)'s</td></tr>
+          <tr><td>EVD</td><td>\(A = U\Lambda U^{-1}\)</td><td>\(n\) lin. indep. eigenvectors</td></tr>
+          <tr><td>Symmetric EVD</td><td>\(A = Q\Lambda Q^T\), \(Q^TQ=I\)</td><td>\(A=A^T\) (always possible)</td></tr>
+          <tr><td>SVD</td><td>\(A = U\Sigma V^T\)</td><td>Always exists for any \(A\)</td></tr>
+          <tr><td>Singular values</td><td>\(\sigma_i = \sqrt{\lambda_i(A^TA)}\)</td><td>\(\sigma_1\geq\sigma_2\geq\cdots\geq 0\)</td></tr>
+          <tr><td>Rank</td><td>\(r = \#\)nonzero singular values</td><td>= \(\dim C(A) = \dim C(A^T)\)</td></tr>
+          <tr><td>Orthogonal matrix</td><td>\(Q^TQ = QQ^T = I\)</td><td>\(Q^{-1}=Q^T\), preserves norms</td></tr>
+          <tr><td>Positive definite</td><td>\(\mathbf{x}^TA\mathbf{x}>0\;\forall\mathbf{x}\neq\mathbf{0}\)</td><td>All \(\lambda_i > 0\)</td></tr>
+          <tr><td>Covariance matrix</td><td>\(\Sigma=\frac{1}{m}X^TX\)</td><td>Zero-mean columns of \(X\)</td></tr>
+          <tr><td>PCA transform</td><td>\(\hat{X}=XQ\)</td><td>\(Q\)=eigvecs of \(\Sigma\)</td></tr>
+          <tr><td>PC variance</td><td>\(\text{Var along }\mathbf{q}_i = \lambda_i\)</td><td>(or \(\lambda_i/m\))</td></tr>
+          <tr><td>Reconstruction</td><td>\(\hat{\mathbf{x}}_i=\sum_{j=1}^k(\mathbf{q}_j^T\mathbf{x}_i)\mathbf{q}_j\)</td><td>Optimal rank-\(k\) approx</td></tr>
+          <tr><td>Rank-k SVD approx</td><td>\(A_k=\sum_{i=1}^k\sigma_i\mathbf{u}_i\mathbf{v}_i^T\)</td><td>Eckart-Young: best rank-\(k\)</td></tr>
+          <tr><td>Rayleigh quotient</td><td>\(\max_{\|\mathbf{x}\|=1}\mathbf{x}^TA\mathbf{x}=\lambda_{\max}\)</td><td>\(A\) symmetric</td></tr>
+          <tr><td>L2 norm</td><td>\(\|\mathbf{x}\|=\sqrt{\mathbf{x}^T\mathbf{x}}\)</td><td>Euclidean length</td></tr>
+          <tr><td>Dot product angle</td><td>\(\mathbf{x}^T\mathbf{y}=\|\mathbf{x}\|\|\mathbf{y}\|\cos\theta\)</td><td>Similarity measure</td></tr>
+          <tr><td>Projection</td><td>\(\text{proj}_\mathbf{u}\mathbf{x}=(\mathbf{u}^T\mathbf{x})\mathbf{u}\)</td><td>\(\|\mathbf{u}\|=1\)</td></tr>
+          <tr><td>Trace</td><td>\(\text{tr}(A)=\sum_i\lambda_i=\sum_i A_{ii}\)</td><td>Sum of eigenvalues</td></tr>
+          <tr><td>Determinant</td><td>\(\det(A)=\prod_i\lambda_i\)</td><td>Product of eigenvalues</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- Conditions cheatsheet -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-red">⚡</div>
+      <div class="subsection-title">Conditions & Implications Cheatsheet</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>If you know…</th><th>Then you know…</th></tr></thead>
+        <tbody>
+          <tr><td>Distinct eigenvalues</td><td>Eigenvectors are linearly independent; EVD exists</td></tr>
+          <tr><td>\(A = A^T\) (symmetric)</td><td>Real eigenvalues; orthogonal eigenvectors; \(A=Q\Lambda Q^T\); PSD if all \(\lambda\geq 0\)</td></tr>
+          <tr><td>\(Q^TQ = I\) (orthogonal)</td><td>\(Q^{-1}=Q^T\) (free!); all \(|\lambda_i|=1\); lengths preserved; \(|\det Q|=1\)</td></tr>
+          <tr><td>\(A = X^TX\)</td><td>Symmetric PSD; eigenvalues \(\geq 0\); eigenvectors = right singular vectors of \(X\)</td></tr>
+          <tr><td>\(A\) is invertible</td><td>All \(\lambda_i\neq 0\); all \(\sigma_i > 0\); \(\det(A)\neq 0\)</td></tr>
+          <tr><td>\(\text{rank}(A)=r\)</td><td>Exactly \(r\) nonzero singular values; \(\dim N(A)=n-r\); \(\dim C(A)=r\)</td></tr>
+          <tr><td>All \(\lambda_i > 0\)</td><td>Positive definite; invertible; \(\mathbf{x}^TA\mathbf{x}>0\); Cholesky factorization exists</td></tr>
+          <tr><td>All \(\lambda_i \geq 0\)</td><td>Positive semi-definite; \(\mathbf{x}^TA\mathbf{x}\geq 0\); can be written as \(B^TB\)</td></tr>
+          <tr><td>Triangular matrix</td><td>Eigenvalues are diagonal entries</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- DL Connections -->
+  <div class="subsection">
+    <div class="subsection-header" onclick="toggleSub(this)">
+      <div class="subsection-icon ic-green">DL</div>
+      <div class="subsection-title">Complete Deep Learning Connections</div>
+      <div class="subsection-toggle">▾</div>
+    </div>
+    <div class="subsection-body">
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>DL Concept</th><th>Linear Algebra Behind It</th></tr></thead>
+        <tbody>
+          <tr><td>Dense layer \(y=Wx+b\)</td><td>Matrix-vector product (affine map). \(W\in\mathbb{R}^{d_{out}\times d_{in}}\)</td></tr>
+          <tr><td>Attention: \(\text{softmax}(QK^T/\sqrt{d_k})V\)</td><td>Scaled dot products; \(QK^T\) is a Gram matrix</td></tr>
+          <tr><td>Backpropagation</td><td>Chain rule; transposes: \(\nabla_W = (\nabla_y)x^T\)</td></tr>
+          <tr><td>Batch normalization</td><td>Whitening (decorrelating) feature activations; related to \(\Sigma^{-1/2}\)</td></tr>
+          <tr><td>Vanishing/exploding gradients</td><td>Eigenvalues of \(W\): \(|\lambda|>1\) explodes, \(|\lambda|<1\) vanishes</td></tr>
+          <tr><td>LSTM/GRU gating</td><td>Adaptively controls effective eigenvalue of recurrent weight</td></tr>
+          <tr><td>PCA preprocessing</td><td>EVD of covariance matrix; project onto top-\(k\) eigenvectors</td></tr>
+          <tr><td>Word embeddings (Word2Vec)</td><td>Linear algebraic structure: \(\vec{king}-\vec{man}+\vec{woman}\approx\vec{queen}\)</td></tr>
+          <tr><td>Spectral normalization (GANs)</td><td>Divide \(W\) by \(\sigma_1(W)\) (largest singular value via power iteration)</td></tr>
+          <tr><td>LoRA fine-tuning</td><td>\(\Delta W = BA\), rank-\(r\); justified by Eckart-Young (best low-rank approximation)</td></tr>
+          <tr><td>Orthogonal init</td><td>QR decomposition or SVD; ensures \(\|W\mathbf{x}\|=\|\mathbf{x}\|\) at init</td></tr>
+          <tr><td>Graph neural networks</td><td>Spectral convolution via eigenvectors of graph Laplacian \(L=D-A\)</td></tr>
+          <tr><td>Matrix factorization (RecSys)</td><td>SVD: \(R\approx U\Sigma V^T\); user/item embeddings from singular vectors</td></tr>
+          <tr><td>Layer expressivity / bottleneck</td><td>Rank of weight matrix; null space dimensions</td></tr>
+          <tr><td>Newton's method / second-order</td><td>Hessian (symmetric) eigenvalues control convergence rate and landscape geometry</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary">
+    <h3>The Grand Summary</h3>
+    <ul>
+      <li>A matrix is a linear transformation: it stretches, rotates, and reflects vectors</li>
+      <li>Eigenvectors are the "natural axes" of a transformation — they only scale</li>
+      <li>EVD \(A=U\Lambda U^{-1}\) diagonalizes \(A\); matrix powers become trivial scalar powers</li>
+      <li>Symmetric matrices always have real eigenvalues and orthogonal eigenvectors</li>
+      <li>The Spectral Theorem: \(A=Q\Lambda Q^T\) — the backbone of PCA</li>
+      <li>PCA finds eigenvectors of \(\Sigma=\frac{1}{m}X^TX\): the axes of maximum variance</li>
+      <li>SVD \(A=U\Sigma V^T\) works for any matrix; expresses as rotation-scale-rotation</li>
+      <li>Eckart-Young: top-\(k\) singular values/vectors give the best rank-\(k\) approximation</li>
+      <li>Singular values = \(\sqrt{\text{eigenvalues of }A^TA}\); SVD = generalized EVD</li>
+      <li>Eigenvalue magnitude controls gradient stability in deep networks (explode/vanish/stable)</li>
+      <li>Covariance matrix \(\Sigma\) is always symmetric PSD: eigenvalues \(\geq 0\)</li>
+      <li>Orthogonal matrices preserve lengths; they're the perfect change-of-basis matrices</li>
+    </ul>
+  </div>
+</div><!-- end m10 -->
+
+</div><!-- /content-wrap -->
+</div><!-- /main -->
+
+<script>
+// ─── NAVIGATION ───
+const MODULES = ['m0','m1','m2','m3','m4','m5','m6','m7','m8','m9','m10'];
+const TB_LABELS = ['Roadmap','Vectors','Matrices','Spaces','Eigenvalues','EVD','Symmetric','PCA','SVD','Proofs','Reference'];
+
+let currentIdx = 0;
+const sbItems = document.querySelectorAll('.sb-item');
+const tbItems = document.querySelectorAll('.tb-item');
+
+function go(id, sbEl) {
+  MODULES.forEach(m => document.getElementById(m).classList.remove('active'));
+  sbItems.forEach(s => s.classList.remove('active'));
+  tbItems.forEach(t => t.classList.remove('active'));
+
+  document.getElementById(id).classList.add('active');
+  currentIdx = MODULES.indexOf(id);
+
+  if (sbEl) sbEl.classList.add('active');
+  else sbItems[currentIdx]?.classList.add('active');
+  tbItems[currentIdx]?.classList.add('active');
+
+  // Update progress
+  document.getElementById('prog-fill').style.width = ((currentIdx+1)/MODULES.length*100)+'%';
+
+  window.scrollTo({top: 0, behavior: 'smooth'});
+  if (window.MathJax) MathJax.typesetPromise([document.getElementById(id)]);
+}
+
+// ─── SUBSECTION TOGGLE ───
+function toggleSub(header) {
+  const sub = header.parentElement;
+  sub.classList.toggle('closed');
+}
+
+// ─── PROOF TOGGLE ───
+function toggleProof(id) {
+  const el = document.getElementById(id);
+  const btn = el.previousElementSibling;
+  el.classList.toggle('open');
+  const isOpen = el.classList.contains('open');
+  btn.textContent = (isOpen ? '▼ ' : '▶ ') + btn.textContent.replace(/^[▼▶] /,'');
+  if (isOpen && window.MathJax) MathJax.typesetPromise([el]);
+}
+
+// ─── QUIZ ───
+const QUIZ_ANSWERS = {
+  q1: 'Correct! When x·y=0, cos(θ)=0, so θ=90°. The vectors are orthogonal — they point in completely independent directions. This is fundamental to PCA: principal components are orthogonal, meaning each captures independent information.',
+  q2: 'Correct! Eigenvalues of Aᵏ are λᵢᵏ. Since A·x=3x, then A²·x=A·(3x)=3·Ax=3·3x=9x, and so on: A⁵x=3⁵x=243x. This is why powers of matrices with |λ|>1 explode and |λ|<1 vanish.',
+  q3: 'Correct! The variance of projected data along the i-th principal component equals λᵢ (the corresponding eigenvalue, or λᵢ/m depending on normalization). Small eigenvalue = small variance = that direction is mostly noise. Discarding it minimizes reconstruction error.',
+  q4: 'Correct! From the derivation: AᵀA = VΣ²Vᵀ, so eigenvalues of AᵀA are σᵢ², meaning σᵢ = √λᵢ(AᵀA). Singular values are always non-negative square roots of eigenvalues of AᵀA.',
+  wrong_q1: 'Not quite. Use the formula: x·y = ||x|| ||y|| cos(θ). If x·y=0 (and both nonzero), then cos(θ)=0, so θ=90°.',
+  wrong_q2: 'Not quite. If Ax=λx, then A²x=A(λx)=λ(Ax)=λ²x. In general, Aᵏx=λᵏx. So A⁵x=3⁵x=243x.',
+  wrong_q3: 'Not quite. Discarding eigenvectors with the smallest eigenvalues is correct because variance along direction pᵢ equals λᵢ (shown in Lecture 6 Slide 54). Small λ = small variance = low-information direction.',
+  wrong_q4: 'Not quite. From AᵀA = VΣᵀUᵀ·UΣVᵀ = VΣ²Vᵀ, the eigenvalues of AᵀA are σᵢ². So σᵢ = √(eigenvalue of AᵀA), not the eigenvalue itself.',
+};
+
+function chk(el, isCorrect, qid) {
+  const opts = el.parentElement.querySelectorAll('.quiz-opt');
+  opts.forEach(o => { o.onclick = null; o.style.cursor='default'; });
+  el.classList.add(isCorrect ? 'correct' : 'wrong');
+  const fb = document.getElementById(qid);
+  fb.classList.add('show', isCorrect ? 'correct' : 'wrong');
+  fb.textContent = (isCorrect ? '✓ Correct! ' : '✗ Not quite. ') +
+    (isCorrect ? QUIZ_ANSWERS[qid] : QUIZ_ANSWERS['wrong_'+qid]);
+}
+
+// ─── NORM CALCULATOR ───
+function calcNorms() {
+  const raw = document.getElementById('norm-vec').value;
+  const vals = raw.split(',').map(v => parseFloat(v.trim())).filter(v => !isNaN(v));
+  if (!vals.length) return;
+  const l1 = vals.reduce((s,v) => s+Math.abs(v), 0);
+  const l2 = Math.sqrt(vals.reduce((s,v) => s+v*v, 0));
+  const linf = Math.max(...vals.map(Math.abs));
+  const l0 = vals.filter(v => v!==0).length;
+  const unit = vals.map(v => (v/l2).toFixed(4)).join(', ');
+  document.getElementById('norm-out').textContent =
+    `Vector: [${vals.join(', ')}]  (n=${vals.length})\n\n` +
+    `L1 norm  = ${l1.toFixed(4)}\n` +
+    `L2 norm  = ${l2.toFixed(4)}\n` +
+    `L∞ norm  = ${linf.toFixed(4)}\n` +
+    `L0 count = ${l0} (number of nonzeros)\n\n` +
+    `Normalized: [${unit}]\n` +
+    `Check: ||normalized||₂ = ${Math.sqrt(vals.map(v=>v/l2).reduce((s,v)=>s+v*v,0)).toFixed(6)}`;
+}
+
+// ─── DOT PRODUCT ───
+function calcDot() {
+  const x1=+document.getElementById('v1x').value||0, x2=+document.getElementById('v1y').value||0;
+  const y1=+document.getElementById('v2x').value||0, y2=+document.getElementById('v2y').value||0;
+  const dot=x1*y1+x2*y2;
+  const nx=Math.sqrt(x1*x1+x2*x2), ny=Math.sqrt(y1*y1+y2*y2);
+  const cosT=(nx>0&&ny>0)?dot/(nx*ny):0;
+  const theta=Math.acos(Math.max(-1,Math.min(1,cosT)))*180/Math.PI;
+  const sim=(nx>0&&ny>0)?(dot/(nx*ny)).toFixed(4):'N/A';
+  document.getElementById('dot-out').textContent =
+    `x · y = ${x1}(${y1}) + ${x2}(${y2}) = ${dot.toFixed(4)}\n` +
+    `‖x‖₂ = ${nx.toFixed(4)},  ‖y‖₂ = ${ny.toFixed(4)}\n` +
+    `Cosine similarity = ${sim}\n` +
+    `Angle θ = ${theta.toFixed(2)}°\n\n` +
+    (Math.abs(dot)<1e-9?'→ ORTHOGONAL: x·y=0, vectors at 90°':
+     dot>0?`→ Acute angle (${theta.toFixed(1)}°): vectors point in similar directions`:
+     `→ Obtuse angle (${theta.toFixed(1)}°): vectors point in opposing directions`);
+  drawDot(x1,x2,y1,y2);
+}
+
+function drawDot(x1,x2,y1,y2) {
+  const c=document.getElementById('dot-canvas'), ctx=c.getContext('2d');
+  const W=c.width,H=c.height,cx=W/2,cy=H/2;
+  const sc=Math.min(W,H)/(2.5*Math.max(Math.abs(x1),Math.abs(x2),Math.abs(y1),Math.abs(y2),1));
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#f8f5ef'; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='#d8d0c0'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(0,cy); ctx.lineTo(W,cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,H); ctx.stroke();
+  function arr(vx,vy,col,lbl) {
+    const tx=cx+vx*sc,ty=cy-vy*sc;
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(tx,ty);
+    ctx.strokeStyle=col; ctx.lineWidth=2.5; ctx.stroke();
+    const ang=Math.atan2(cy-ty,tx-cx);
+    ctx.beginPath(); ctx.moveTo(tx,ty);
+    ctx.lineTo(tx-11*Math.cos(ang-.42),ty+11*Math.sin(ang-.42));
+    ctx.lineTo(tx-11*Math.cos(ang+.42),ty+11*Math.sin(ang+.42));
+    ctx.closePath(); ctx.fillStyle=col; ctx.fill();
+    ctx.fillStyle=col; ctx.font='bold 13px IBM Plex Mono,monospace';
+    ctx.fillText(lbl,tx+8,ty-5);
+  }
+  arr(x1,x2,'#1a4f8a','x');
+  arr(y1,y2,'#c0392b','y');
+}
+
+// ─── MATRIX EXPLORER ───
+function calcMatrix() {
+  const a=+document.getElementById('ma').value||0, b=+document.getElementById('mb').value||0;
+  const c=+document.getElementById('mc').value||0, d=+document.getElementById('md').value||0;
+  const det=a*d-b*c;
+  const tr=a+d;
+  const sym=(b===c)?'Yes (symmetric)':'No';
+  let inv='Not invertible (det=0)';
+  if(Math.abs(det)>1e-10) {
+    const f=1/det;
+    inv=`[[${(d*f).toFixed(4)}, ${(-b*f).toFixed(4)}], [${(-c*f).toFixed(4)}, ${(a*f).toFixed(4)}]]`;
+  }
+  const disc=tr*tr-4*det;
+  let eigs='';
+  if(disc<0) eigs=`Complex: ${(tr/2).toFixed(3)} ± ${(Math.sqrt(-disc)/2).toFixed(3)}i`;
+  else { const r=Math.sqrt(disc); eigs=`λ₁=${((tr+r)/2).toFixed(4)}, λ₂=${((tr-r)/2).toFixed(4)}`; }
+  document.getElementById('matrix-out').textContent =
+    `Matrix A:\n[${a}  ${b}]\n[${c}  ${d}]\n\n` +
+    `Determinant = ${det.toFixed(4)}\n` +
+    `Trace       = ${tr.toFixed(4)}\n` +
+    `Rank        = ${Math.abs(det)>1e-10?2:1}\n` +
+    `Symmetric?  = ${sym}\n` +
+    `Eigenvalues = ${eigs}\n` +
+    `Inverse A⁻¹ = ${inv}`;
+}
+
+// ─── EIGENVALUE CALCULATOR ───
+function calcEigen() {
+  const a=+document.getElementById('e11').value||0, b=+document.getElementById('e12').value||0;
+  const c=+document.getElementById('e21').value||0, d=+document.getElementById('e22').value||0;
+  const tr=a+d, det=a*d-b*c, disc=tr*tr-4*det;
+  let out=`A = [[${a},${b}],[${c},${d}]]\n\nCharacteristic: λ² - ${tr}λ + ${det.toFixed(3)} = 0\nDiscriminant = ${disc.toFixed(4)}\n\n`;
+  if(disc<0) { out+=`Complex eigenvalues:\nλ = ${(tr/2).toFixed(4)} ± ${(Math.sqrt(-disc)/2).toFixed(4)}i`; }
+  else {
+    const l1=(tr+Math.sqrt(disc))/2, l2=(tr-Math.sqrt(disc))/2;
+    out+=`λ₁ = ${l1.toFixed(4)},  λ₂ = ${l2.toFixed(4)}\n\n`;
+    function evec(lam) {
+      if(Math.abs(b)>1e-9) { const v=[b,lam-a]; const n=Math.sqrt(v[0]**2+v[1]**2); return `[${(v[0]/n).toFixed(4)}, ${(v[1]/n).toFixed(4)}]`; }
+      if(Math.abs(a-lam)>1e-9) return '[1, 0]';
+      return '[0, 1]';
+    }
+    out+=`v₁ ≈ ${evec(l1)}  (for λ₁=${l1.toFixed(4)})\n`;
+    out+=`v₂ ≈ ${evec(l2)}  (for λ₂=${l2.toFixed(4)})\n\n`;
+    out+=`Trace = λ₁+λ₂ = ${(l1+l2).toFixed(4)} ${Math.abs(l1+l2-tr)<0.01?'✓':'✗'}\n`;
+    out+=`Det   = λ₁·λ₂ = ${(l1*l2).toFixed(4)} ${Math.abs(l1*l2-det)<0.01?'✓':'✗'}\n`;
+    if(Math.abs(b-c)<1e-9) out+='\n→ Symmetric matrix: eigenvectors are orthogonal!';
+  }
+  document.getElementById('eigen-out').textContent=out;
+}
+
+// ─── EIGENVALUE VARIANCE (Module 6) ───
+function calcEigVar() {
+  const raw=document.getElementById('eig-list').value;
+  const vals=raw.split(',').map(v=>parseFloat(v.trim())).filter(v=>!isNaN(v)&&v>=0);
+  if(!vals.length) return;
+  const tot=vals.reduce((a,b)=>a+b,0);
+  let out='PC   Eigenvalue   Var%    Cumulative%\n'+'─'.repeat(40)+'\n';
+  let cum=0;
+  vals.forEach((v,i)=>{
+    const pct=v/tot*100; cum+=pct;
+    out+=`PC${(i+1).toString().padStart(2,'0')}  ${v.toFixed(2).padStart(10)}   ${pct.toFixed(1).padStart(5)}%   ${cum.toFixed(1).padStart(9)}%\n`;
+  });
+  out+=`\n→ 95% threshold at PC${vals.findIndex((_,i)=>vals.slice(0,i+1).reduce((a,b)=>a+b,0)/tot>=0.95)+1}`;
+  document.getElementById('eig-var-out').textContent=out;
+  drawBar(vals,tot,'eig-canvas','Variance (%)');
+}
+
+function drawBar(vals,tot,canvasId,label) {
+  const c=document.getElementById(canvasId), ctx=c.getContext('2d');
+  if(!c) return;
+  const W=c.width,H=c.height; ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#f8f5ef'; ctx.fillRect(0,0,W,H);
+  const n=vals.length, pad=36, bw=Math.min(38,(W-2*pad)/n-4);
+  const mx=vals[0]/tot;
+  vals.forEach((v,i)=>{
+    const pct=v/tot,bh=(pct/mx)*(H-50),bx=pad+i*((W-2*pad)/n),by=H-28-bh;
+    ctx.fillStyle=i<3?'#1a4f8a':i<6?'#1a7040':'#7a7060';
+    ctx.fillRect(bx,by,bw,bh);
+    ctx.fillStyle='#1a1814'; ctx.font='10px IBM Plex Mono,monospace'; ctx.textAlign='center';
+    ctx.fillText(`${(pct*100).toFixed(0)}%`,bx+bw/2,by-3);
+    ctx.fillText(`PC${i+1}`,bx+bw/2,H-10);
+  });
+  ctx.fillStyle='#7a7060'; ctx.font='11px Inter,sans-serif'; ctx.textAlign='left';
+  ctx.fillText(label,8,13);
+}
+
+// ─── SCREE PLOT (Module 7) ───
+function drawScree() {
+  const raw=document.getElementById('pca-eigs').value;
+  const vals=raw.split(',').map(v=>parseFloat(v.trim())).filter(v=>!isNaN(v)&&v>=0);
+  if(!vals.length) return;
+  const tot=vals.reduce((a,b)=>a+b,0);
+  let cum=0;
+  let out='PC  Eigenvalue  Var%   Cumul%\n'+'─'.repeat(32)+'\n';
+  const cumPcts=[];
+  vals.forEach((v,i)=>{ const p=v/tot*100; cum+=p; cumPcts.push(cum); out+=`${(i+1).toString().padStart(2,'0')}  ${v.toFixed(2).padStart(9)}  ${p.toFixed(1).padStart(5)}%  ${cum.toFixed(1).padStart(6)}%\n`; });
+  document.getElementById('scree-out').textContent=out;
+  const c=document.getElementById('scree-canvas'), ctx=c.getContext('2d');
+  const W=c.width,H=c.height; ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#f8f5ef'; ctx.fillRect(0,0,W,H);
+  const n=vals.length,pad=38,bw=Math.min(34,(W-2*pad)/n-3),mx=vals[0];
+  vals.forEach((v,i)=>{ const bh=(v/mx)*(H-55),bx=pad+i*((W-2*pad)/n),by=H-28-bh; ctx.fillStyle='#1a4f8a'; ctx.fillRect(bx,by,bw,bh); });
+  // Cumulative line
+  ctx.beginPath(); ctx.strokeStyle='#c0392b'; ctx.lineWidth=2;
+  vals.forEach((_,i)=>{
+    const px=pad+i*((W-2*pad)/n)+bw/2, py=H-28-(cumPcts[i]/100)*(H-55);
+    i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+  });
+  ctx.stroke();
+  ctx.fillStyle='#c0392b'; ctx.font='10px IBM Plex Mono,monospace'; ctx.textAlign='left'; ctx.fillText('─ Cumul%',W-75,15);
+  ctx.fillStyle='#1a4f8a'; ctx.fillText('▌ Eigenvalue',W-75,28);
+  // 95% line
+  ctx.strokeStyle='#c89020'; ctx.setLineDash([4,3]); ctx.lineWidth=1;
+  const y95=H-28-(0.95)*(H-55); ctx.beginPath(); ctx.moveTo(pad,y95); ctx.lineTo(W-pad,y95); ctx.stroke();
+  ctx.setLineDash([]); ctx.fillStyle='#b06010'; ctx.font='10px IBM Plex Mono,monospace'; ctx.textAlign='right';
+  ctx.fillText('95%',W-pad-2,y95-3);
+}
+
+// ─── SVD APPROXIMATION ───
+function calcSVD() {
+  const raw=document.getElementById('svd-sigmas').value;
+  const sigs=raw.split(',').map(v=>parseFloat(v.trim())).filter(v=>!isNaN(v)&&v>=0).sort((a,b)=>b-a);
+  if(!sigs.length) return;
+  const total=sigs.reduce((a,b)=>a+b*b,0);
+  let out='k   σ_k    ||A_k||²_F   ||A-A_k||²_F   Energy%\n'+'─'.repeat(52)+'\n';
+  let cum=0;
+  sigs.forEach((s,i)=>{ cum+=s*s; const rem=total-cum; out+=`${(i+1).toString().padStart(2,'0')}  ${s.toFixed(4).padStart(6)}  ${cum.toFixed(4).padStart(12)}  ${rem.toFixed(4).padStart(14)}  ${(cum/total*100).toFixed(1)}%\n`; });
+  document.getElementById('svd-out').textContent=out;
+  drawBar(sigs.map(s=>s*s),total,'svd-canvas','σᵢ² (Energy per component)');
+}
+
+// Init
+window.addEventListener('load',()=>{
+  if(window.MathJax) MathJax.typesetPromise();
+  setTimeout(()=>{ if(window.MathJax) MathJax.typesetPromise(); },1500);
+  calcEigVar();
+});
+</script>
+</body>
+</html>
